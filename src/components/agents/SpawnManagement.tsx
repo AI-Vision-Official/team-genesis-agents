@@ -219,7 +219,7 @@ export const SpawnManagement = ({ spawnRequests, agents, onApproveSpawn, onRejec
               <h4 className="font-medium mb-2">Automatic Approval Criteria:</h4>
               <ul className="space-y-1 text-slate-600">
                 <li>• Workload exceeds 85% for 24+ hours</li>
-                <li>• Critical tasks waiting for >2 hours</li>
+                <li>• Critical tasks waiting for {'>'}2 hours</li>
                 <li>• Specialized skills gap identified</li>
                 <li>• Emergency response scenarios</li>
               </ul>
@@ -229,7 +229,7 @@ export const SpawnManagement = ({ spawnRequests, agents, onApproveSpawn, onRejec
               <ul className="space-y-1 text-slate-600">
                 <li>• High security clearance requests</li>
                 <li>• Long-term agent deployment</li>
-                <li>• Budget implications >$1000/month</li>
+                <li>• Budget implications {'>'} $1000/month</li>
                 <li>• New department creation</li>
               </ul>
             </div>
