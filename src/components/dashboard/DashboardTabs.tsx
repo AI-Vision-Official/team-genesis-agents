@@ -1,4 +1,3 @@
-
 import { DashboardOverview } from './DashboardOverview';
 import { SocialMediaCenter } from '../socialMedia/SocialMediaCenter';
 import { MissionControlCenter } from '../missionControl/MissionControlCenter';
@@ -21,6 +20,8 @@ import { QuickActionsPanel } from '../quickActions/QuickActionsPanel';
 import { AgentCollaborationHub } from '../agents/AgentCollaborationHub';
 import { VoiceCommandInterface } from '../voice/VoiceCommandInterface';
 import { CommunicationCenter } from '../agents/CommunicationCenter';
+import { DesktopWrapper } from '../desktop/DesktopWrapper';
+import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashboard';
 import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
@@ -131,6 +132,10 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <VoiceCommandInterface />;
       case 'communication':
         return <CommunicationCenter agents={communicationAgents} />;
+      case 'desktop':
+        return <DesktopWrapper />;
+      case 'analytics':
+        return <AdvancedAnalyticsDashboard />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':
