@@ -139,7 +139,7 @@ export const RuleBuilder = ({ rule, platforms, onSave, onCancel }: RuleBuilderPr
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Priority</Label>
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(value) => setPriority(value as 'low' | 'medium' | 'high' | 'critical')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -153,7 +153,7 @@ export const RuleBuilder = ({ rule, platforms, onSave, onCancel }: RuleBuilderPr
             </div>
             <div>
               <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={(value) => setCategory(value as 'productivity' | 'social_media' | 'marketing' | 'humanitarian' | 'system' | 'custom')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
