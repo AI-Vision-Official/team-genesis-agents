@@ -19,6 +19,8 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'analytics', label: 'Advanced Analytics', icon: '📈' },
     { id: 'designer', label: 'Agent Designer', icon: '🎨' },
     { id: 'monitoring', label: 'Real-Time Monitor', icon: '📡' },
+    { id: 'insights', label: 'AI Insights', icon: '🧠' },
+    { id: 'security', label: 'Security Center', icon: '🔒' },
     { id: 'social', label: 'Social Media', icon: '📱' },
     { id: 'mission', label: 'Mission Control', icon: '🎯' },
     { id: 'humanitarian', label: 'Humanitarian', icon: '🌍' },
@@ -32,7 +34,6 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'boardroom', label: 'Boardroom', icon: '👔' },
     { id: 'agents', label: 'Agent Framework', icon: '🤖' },
     { id: 'specialized', label: 'Specialized Agents', icon: '🛡️' },
-    { id: 'security', label: 'Security Center', icon: '🔒' },
     { id: 'evaluation', label: 'Evaluation', icon: '📋' }
   ];
 

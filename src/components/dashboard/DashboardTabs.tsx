@@ -1,3 +1,4 @@
+
 import { DashboardOverview } from './DashboardOverview';
 import { SocialMediaCenter } from '../socialMedia/SocialMediaCenter';
 import { MissionControlCenter } from '../missionControl/MissionControlCenter';
@@ -24,6 +25,7 @@ import { DesktopWrapper } from '../desktop/DesktopWrapper';
 import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashboard';
 import { CustomAgentDesigner } from '../agents/CustomAgentDesigner';
 import { RealTimeMonitoring } from '../monitoring/RealTimeMonitoring';
+import { AIInsightsEngine } from '../insights/AIInsightsEngine';
 import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
@@ -142,6 +144,10 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <CustomAgentDesigner />;
       case 'monitoring':
         return <RealTimeMonitoring />;
+      case 'insights':
+        return <AIInsightsEngine />;
+      case 'security':
+        return <SecurityCenter />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':
@@ -173,8 +179,6 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <AgentFrameworkCenter />;
       case 'specialized':
         return <SpecializedAgentsCenter />;
-      case 'security':
-        return <SecurityCenter />;
       case 'evaluation':
         return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
       case 'health':
