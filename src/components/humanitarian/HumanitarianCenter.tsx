@@ -44,10 +44,10 @@ export const HumanitarianCenter = ({ projects, alerts }: HumanitarianCenterProps
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-green-700">
-                🌍 Heal the World Project - Mission Control
+                🌍 Non Profit Management Center
               </CardTitle>
               <CardDescription className="text-green-600">
-                Compassionate AI coordination for global humanitarian impact
+                Comprehensive management platform for all your non-profit initiatives
               </CardDescription>
             </div>
             <AccessibilityControls 
@@ -86,7 +86,7 @@ export const HumanitarianCenter = ({ projects, alerts }: HumanitarianCenterProps
                 <p className="text-2xl font-bold text-orange-700">
                   {alerts.filter(a => a.status === 'new').length}
                 </p>
-                <p className="text-sm text-orange-600">Crisis Alerts</p>
+                <p className="text-sm text-orange-600">Active Alerts</p>
               </div>
             </CardContent>
           </Card>
@@ -99,7 +99,7 @@ export const HumanitarianCenter = ({ projects, alerts }: HumanitarianCenterProps
         }`}>
           <TabsTrigger value="overview">Projects</TabsTrigger>
           <TabsTrigger value="impact">Impact</TabsTrigger>
-          <TabsTrigger value="crisis">Crisis</TabsTrigger>
+          <TabsTrigger value="alerts">Alerts</TabsTrigger>
           <TabsTrigger value="resources">Resources</TabsTrigger>
           {!accessibilitySettings.minimumUI && (
             <>
@@ -119,7 +119,7 @@ export const HumanitarianCenter = ({ projects, alerts }: HumanitarianCenterProps
           <ImpactDashboard projects={projects} settings={accessibilitySettings} />
         </TabsContent>
 
-        <TabsContent value="crisis">
+        <TabsContent value="alerts">
           <CrisisResponse alerts={alerts} settings={accessibilitySettings} />
         </TabsContent>
 

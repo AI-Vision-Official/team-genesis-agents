@@ -22,7 +22,7 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'social-media', label: 'Social Media', icon: Share2 },
     { id: 'marketing', label: 'Marketing AI', icon: Megaphone },
     { id: 'web-development', label: 'Web Development', icon: Globe },
-    { id: 'humanitarian', label: 'Heal the World', icon: Heart },
+    { id: 'humanitarian', label: 'Non Profit Management', icon: Heart },
     { id: 'evaluation', label: 'Evaluation', icon: Eye }
   ];
 
