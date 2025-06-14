@@ -1,20 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { HealthOverview } from './HealthOverview';
+import { AgentStatusCard } from './AgentStatusCard';
 import { 
-  Activity, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Cpu, 
   Heart, 
-  RefreshCw,
-  TrendingUp,
-  Wifi,
-  WifiOff
+  RefreshCw
 } from 'lucide-react';
 
 interface AgentHealth {
@@ -115,26 +106,6 @@ export const AgentHealthDashboard = () => {
     }, 1000);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
-      case 'critical': return <AlertTriangle className="w-5 h-5 text-red-600" />;
-      case 'offline': return <WifiOff className="w-5 h-5 text-gray-600" />;
-      default: return <Activity className="w-5 h-5 text-blue-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'bg-green-100 text-green-800 border-green-200';
-      case 'warning': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      case 'offline': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-  };
-
   const healthyAgents = agents.filter(a => a.status === 'healthy').length;
   const warningAgents = agents.filter(a => a.status === 'warning').length;
   const criticalAgents = agents.filter(a => a.status === 'critical').length;
@@ -159,158 +130,18 @@ export const AgentHealthDashboard = () => {
       </div>
 
       {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-700">Healthy</p>
-                <p className="text-2xl font-bold text-green-900">{healthyAgents}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-yellow-700">Warning</p>
-                <p className="text-2xl font-bold text-yellow-900">{warningAgents}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-red-700">Critical</p>
-                <p className="text-2xl font-bold text-red-900">{criticalAgents}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-700">Avg Response</p>
-                <p className="text-2xl font-bold text-blue-900">{avgResponseTime.toFixed(0)}ms</p>
-              </div>
-              <Clock className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-700">Avg Uptime</p>
-                <p className="text-2xl font-bold text-purple-900">{avgUptime.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <HealthOverview
+        healthyAgents={healthyAgents}
+        warningAgents={warningAgents}
+        criticalAgents={criticalAgents}
+        avgResponseTime={avgResponseTime}
+        avgUptime={avgUptime}
+      />
 
       {/* Agent Details */}
       <div className="grid gap-4">
         {agents.map((agent) => (
-          <Card key={agent.id} className={`border-l-4 ${
-            agent.status === 'healthy' ? 'border-l-green-500' :
-            agent.status === 'warning' ? 'border-l-yellow-500' :
-            agent.status === 'critical' ? 'border-l-red-500' : 'border-l-gray-500'
-          }`}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(agent.status)}
-                  <div>
-                    <CardTitle className="text-lg">{agent.name}</CardTitle>
-                    <CardDescription>{agent.type}</CardDescription>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getStatusColor(agent.status)}>
-                    {agent.status.toUpperCase()}
-                  </Badge>
-                  {Date.now() - agent.lastHeartbeat.getTime() < 60000 ? (
-                    <Wifi className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <WifiOff className="w-4 h-4 text-red-600" />
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* CPU Usage */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="flex items-center gap-1">
-                      <Cpu className="w-3 h-3" />
-                      CPU
-                    </span>
-                    <span className={agent.cpuUsage > 80 ? 'text-red-600 font-medium' : ''}>{agent.cpuUsage}%</span>
-                  </div>
-                  <Progress value={agent.cpuUsage} className="h-2" />
-                </div>
-
-                {/* Memory Usage */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Memory</span>
-                    <span className={agent.memoryUsage > 80 ? 'text-red-600 font-medium' : ''}>{agent.memoryUsage}%</span>
-                  </div>
-                  <Progress value={agent.memoryUsage} className="h-2" />
-                </div>
-
-                {/* Task Load */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Tasks</span>
-                    <span>{agent.currentTasks}/{agent.maxTasks}</span>
-                  </div>
-                  <Progress value={(agent.currentTasks / agent.maxTasks) * 100} className="h-2" />
-                </div>
-
-                {/* Success Rate */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Success Rate</span>
-                    <span className={agent.successRate < 90 ? 'text-yellow-600 font-medium' : 'text-green-600'}>{agent.successRate}%</span>
-                  </div>
-                  <Progress value={agent.successRate} className="h-2" />
-                </div>
-              </div>
-
-              <div className="flex justify-between text-sm text-slate-600">
-                <span>Response Time: {agent.responseTime}ms</span>
-                <span>Uptime: {agent.uptime}%</span>
-                <span>Errors: {agent.errorCount}</span>
-                <span>Last Heartbeat: {new Date(agent.lastHeartbeat).toLocaleTimeString()}</span>
-              </div>
-
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline">View Logs</Button>
-                <Button size="sm" variant="outline">Restart Agent</Button>
-                {agent.status === 'critical' && (
-                  <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                    Emergency Stop
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <AgentStatusCard key={agent.id} agent={agent} />
         ))}
       </div>
     </div>
