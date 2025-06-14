@@ -1,4 +1,3 @@
-
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
@@ -11,6 +10,7 @@ import { CreativeCenter } from '@/components/creative/CreativeCenter';
 import { SocialMediaCenter } from '@/components/socialMedia/SocialMediaCenter';
 import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
 import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
+import { AgentFrameworkCenter } from '@/components/agents/AgentFrameworkCenter';
 import { DashboardOverview } from './DashboardOverview';
 import type { WebAgent, WebProject } from '@/types/webDevelopment';
 import type { HumanitarianProject, CrisisAlert } from '@/types/humanitarian';
@@ -312,6 +312,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         focusMode: false
       }} />;
     
+    case 'agent-framework':
+      return <AgentFrameworkCenter />;
+    
     case 'agents':
       return (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -326,6 +329,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'tasks':
       return <TaskBoard tasks={mockTasks} />;
+    
+    case 'ifttt':
+      return <IFTTTCenter />;
     
     case 'creative':
       return <CreativeCenter agents={mockCreativeAgents} />;
