@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Bot, Users, Zap, Activity, Plus, Settings } from 'lucide-react';
+import { Bot, Users, Zap, Activity, Plus, Settings, Eye } from 'lucide-react';
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
+import { EvaluationSystem } from '@/components/evaluation/EvaluationSystem';
 
 interface Agent {
   id: string;
@@ -132,7 +133,8 @@ const Dashboard = () => {
             { id: 'overview', label: 'Overview', icon: Activity },
             { id: 'agents', label: 'Agents', icon: Bot },
             { id: 'teams', label: 'Teams', icon: Users },
-            { id: 'tasks', label: 'Tasks', icon: Zap }
+            { id: 'tasks', label: 'Tasks', icon: Zap },
+            { id: 'evaluation', label: 'Evaluation', icon: Eye }
           ].map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
@@ -264,6 +266,11 @@ const Dashboard = () => {
         {/* Tasks Tab */}
         {activeTab === 'tasks' && (
           <TaskBoard tasks={mockTasks} />
+        )}
+
+        {/* Evaluation Tab */}
+        {activeTab === 'evaluation' && (
+          <EvaluationSystem agents={mockAgents} tasks={mockTasks} />
         )}
       </div>
     </div>
