@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,8 +33,13 @@ export const CertificateUpload = () => {
   const [dragActive, setDragActive] = useState(false);
 
   const categories: CertificateCategory[] = [
-    'technology', 'business', 'healthcare', 'education', 'creative', 
-    'language', 'professional', 'academic', 'certification', 'other'
+    'agriculture', 'animals', 'beauty', 'communication', 'economy', 'education',
+    'general', 'hobby', 'horeca', 'humanitarian', 'it', 'linguistics', 'medical',
+    'medical_autism', 'medical_ce', 'medical_first_aid', 'music', 'nature',
+    'nutrition', 'photography', 'psychology', 'religion', 'religion_ordination',
+    'safety', 'safety_fire', 'spiritual', 'spiritual_reiki', 'sports',
+    'technology', 'transportation', 'transportation_drone', 'travel',
+    'university', 'wildlife'
   ];
 
   const types: CertificateType[] = [
@@ -112,6 +116,13 @@ export const CertificateUpload = () => {
     setCurrentSkill('');
   };
 
+  const formatCategoryName = (category: string) => {
+    return category
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -181,7 +192,7 @@ export const CertificateUpload = () => {
                   <SelectContent>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                        {formatCategoryName(category)}
                       </SelectItem>
                     ))}
                   </SelectContent>
