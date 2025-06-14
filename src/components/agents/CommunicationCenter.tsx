@@ -248,7 +248,7 @@ export const CommunicationCenter = ({ agents }: CommunicationCenterProps) => {
                     <span className="font-medium">{getAgentName(comm.fromAgentId)}</span>
                     <span className="text-slate-500">→</span>
                     <span className="font-medium">{getAgentName(comm.toAgentId)}</span>
-                    <Badge className={getSecurityColor(comm.securityLevel)} size="sm">
+                    <Badge className={getSecurityColor(comm.securityLevel)}>
                       {comm.securityLevel}
                     </Badge>
                   </div>

@@ -296,7 +296,7 @@ export const SecurityCenter = ({ agents }: SecurityCenterProps) => {
             {auditTrail.map((entry) => (
               <div key={entry.id} className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
                 <div className="mt-1">
-                  <Badge className={getSeverityColor(entry.severity)} size="sm">
+                  <Badge className={getSeverityColor(entry.severity)}>
                     {entry.severity}
                   </Badge>
                 </div>
