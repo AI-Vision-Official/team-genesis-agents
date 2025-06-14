@@ -18,6 +18,9 @@ import { EvaluationSystem } from '../evaluation/EvaluationSystem';
 import { AgentHealthDashboard } from '../monitoring/AgentHealthDashboard';
 import { SmartNotificationSystem } from '../notifications/SmartNotificationSystem';
 import { QuickActionsPanel } from '../quickActions/QuickActionsPanel';
+import { AgentCollaborationHub } from '../agents/AgentCollaborationHub';
+import { VoiceCommandInterface } from '../voice/VoiceCommandInterface';
+import { CommunicationCenter } from '../agents/CommunicationCenter';
 import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
@@ -78,10 +81,48 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     focusMode: false
   };
 
+  // Convert mockAgents to the format expected by CommunicationCenter
+  const communicationAgents = mockAgents.map(agent => ({
+    id: agent.id,
+    name: agent.name,
+    role: {
+      name: agent.type,
+      description: `${agent.type} specialist`,
+      permissions: ['read', 'write'],
+      responsibilities: agent.capabilities
+    },
+    status: agent.status,
+    capabilities: agent.capabilities,
+    currentTask: agent.currentTask,
+    performance: {
+      efficiency: agent.efficiency,
+      tasksCompleted: agent.tasksCompleted,
+      successRate: 95,
+      averageResponseTime: 1200
+    },
+    communication: {
+      preferredChannels: ['internal', 'email'],
+      responseTime: 1200,
+      availability: 'always'
+    },
+    spawnHistory: [],
+    learningProgress: {
+      totalLearningHours: 100,
+      completedCourses: 5,
+      skillLevels: {}
+    }
+  }));
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return <DashboardOverview />;
+      case 'collaboration':
+        return <AgentCollaborationHub />;
+      case 'voice':
+        return <VoiceCommandInterface />;
+      case 'communication':
+        return <CommunicationCenter agents={communicationAgents} />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':
