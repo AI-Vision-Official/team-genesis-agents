@@ -22,6 +22,8 @@ import { VoiceCommandInterface } from '../voice/VoiceCommandInterface';
 import { CommunicationCenter } from '../agents/CommunicationCenter';
 import { DesktopWrapper } from '../desktop/DesktopWrapper';
 import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashboard';
+import { CustomAgentDesigner } from '../agents/CustomAgentDesigner';
+import { RealTimeMonitoring } from '../monitoring/RealTimeMonitoring';
 import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
@@ -136,6 +138,10 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <DesktopWrapper />;
       case 'analytics':
         return <AdvancedAnalyticsDashboard />;
+      case 'designer':
+        return <CustomAgentDesigner />;
+      case 'monitoring':
+        return <RealTimeMonitoring />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':

@@ -17,6 +17,8 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'communication', label: 'Communication', icon: '💬' },
     { id: 'desktop', label: 'Desktop App', icon: '💻' },
     { id: 'analytics', label: 'Advanced Analytics', icon: '📈' },
+    { id: 'designer', label: 'Agent Designer', icon: '🎨' },
+    { id: 'monitoring', label: 'Real-Time Monitor', icon: '📡' },
     { id: 'social', label: 'Social Media', icon: '📱' },
     { id: 'mission', label: 'Mission Control', icon: '🎯' },
     { id: 'humanitarian', label: 'Humanitarian', icon: '🌍' },
