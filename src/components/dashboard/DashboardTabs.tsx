@@ -1,3 +1,4 @@
+
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
@@ -8,6 +9,7 @@ import { WebDevelopmentCenter } from '@/components/webDevelopment/WebDevelopment
 import { HumanitarianCenter } from '@/components/humanitarian/HumanitarianCenter';
 import { CreativeCenter } from '@/components/creative/CreativeCenter';
 import { SocialMediaCenter } from '@/components/socialMedia/SocialMediaCenter';
+import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
 import { DashboardOverview } from './DashboardOverview';
 import type { WebAgent, WebProject } from '@/types/webDevelopment';
 import type { HumanitarianProject, CrisisAlert } from '@/types/humanitarian';
@@ -296,6 +298,18 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'mission-control':
       return <MissionControlCenter agents={mockAgents} tasks={mockTasks} />;
+    
+    case 'boardroom':
+      return <BoardroomCenter settings={{
+        dyslexiaFont: false,
+        highContrast: false,
+        reducedMotion: false,
+        largeText: false,
+        voiceToText: false,
+        textToSpeech: false,
+        quietMode: false,
+        focusMode: false
+      }} />;
     
     case 'agents':
       return (

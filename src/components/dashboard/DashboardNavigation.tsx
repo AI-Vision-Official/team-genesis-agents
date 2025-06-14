@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Bot, Users, Zap, Activity, Eye, Brain, Megaphone, Globe, Heart, Palette, Share2 } from 'lucide-react';
+import { Bot, Users, Zap, Activity, Eye, Brain, Megaphone, Globe, Heart, Palette, Share2, MessageCircle } from 'lucide-react';
 
 interface DashboardNavigationProps {
   activeTab: string;
@@ -11,6 +11,7 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'mission-control', label: 'Mission Control', icon: Brain },
+    { id: 'boardroom', label: 'AI-Human Boardroom', icon: MessageCircle },
     { id: 'agents', label: 'Agents', icon: Bot },
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'tasks', label: 'Tasks', icon: Zap },
