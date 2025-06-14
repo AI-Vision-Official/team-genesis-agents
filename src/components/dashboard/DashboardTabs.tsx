@@ -31,6 +31,7 @@ import {
   mockIFTTTLogs, 
   mockIFTTTStats 
 } from '@/data/mockIFTTTData';
+import type { Agent as FrameworkAgent } from '@/types/agentFramework';
 
 interface Agent {
   id: string;
@@ -82,34 +83,41 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
   };
 
   // Convert mockAgents to the format expected by CommunicationCenter
-  const communicationAgents = mockAgents.map(agent => ({
+  const communicationAgents: FrameworkAgent[] = mockAgents.map(agent => ({
     id: agent.id,
     name: agent.name,
     role: {
+      id: `role-${agent.id}`,
       name: agent.type,
-      description: `${agent.type} specialist`,
-      permissions: ['read', 'write'],
-      responsibilities: agent.capabilities
+      type: 'specialist' as const,
+      department: 'operations' as const,
+      responsibilities: agent.capabilities,
+      requiredCapabilities: agent.capabilities,
+      autonomyLevel: 'medium' as const,
+      canSpawnAgents: true,
+      maxSubordinates: 5,
+      communicationChannels: [],
+      securityClearance: 'internal' as const
     },
     status: agent.status,
-    capabilities: agent.capabilities,
-    currentTask: agent.currentTask,
-    performance: {
-      efficiency: agent.efficiency,
+    subordinateIds: [],
+    currentTasks: [],
+    workload: 75,
+    efficiency: agent.efficiency,
+    specializations: agent.capabilities,
+    createdAt: new Date(),
+    lastActive: new Date(),
+    communicationPreferences: [],
+    version: '1.0.0',
+    metrics: {
       tasksCompleted: agent.tasksCompleted,
+      averageTaskTime: 120,
       successRate: 95,
-      averageResponseTime: 1200
-    },
-    communication: {
-      preferredChannels: ['internal', 'email'],
-      responseTime: 1200,
-      availability: 'always'
-    },
-    spawnHistory: [],
-    learningProgress: {
-      totalLearningHours: 100,
-      completedCourses: 5,
-      skillLevels: {}
+      collaborationScore: 85,
+      innovationIndex: 78,
+      agentsSpawned: agent.spawnedAgents,
+      communicationEfficiency: 92,
+      uptime: 99.5
     }
   }));
 
