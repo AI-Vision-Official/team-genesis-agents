@@ -1,6 +1,4 @@
-
-import { Button } from '@/components/ui/button';
-import { Bot, Users, Zap, Activity, Eye, Brain, Megaphone, Globe, Heart, Palette, Share2, MessageCircle, Link, Network, Lightbulb, Settings, Shield, HeartHandshake, GraduationCap } from 'lucide-react';
+import React from 'react';
 
 interface DashboardNavigationProps {
   activeTab: string;
@@ -8,45 +6,48 @@ interface DashboardNavigationProps {
 }
 
 export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNavigationProps) => {
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'mission-control', label: 'Mission Control', icon: Brain },
-    { id: 'boardroom', label: 'AI-Human Boardroom', icon: MessageCircle },
-    { id: 'agent-framework', label: 'Agent Framework', icon: Network },
-    { id: 'specialized-agents', label: 'Guardian Agents', icon: HeartHandshake },
-    { id: 'invention', label: 'Invention Protection', icon: Lightbulb },
-    { id: 'agents', label: 'Agents', icon: Bot },
-    { id: 'teams', label: 'Teams', icon: Users },
-    { id: 'tasks', label: 'Tasks', icon: Zap },
-    { id: 'ifttt', label: 'IFTTT Automation', icon: Link },
-    { id: 'integrations', label: 'Integrations', icon: Settings },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'education', label: 'Education', icon: GraduationCap },
-    { id: 'creative', label: 'Creative Center', icon: Palette },
-    { id: 'social-media', label: 'Social Media', icon: Share2 },
-    { id: 'marketing', label: 'Marketing AI', icon: Megaphone },
-    { id: 'web-development', label: 'Web Development', icon: Globe },
-    { id: 'humanitarian', label: 'Non Profit Management', icon: Heart },
-    { id: 'evaluation', label: 'Evaluation', icon: Eye }
+  const navigationTabs = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'health', label: 'System Health', icon: '💗' },
+    { id: 'notifications', label: 'Notifications', icon: '🔔' },
+    { id: 'actions', label: 'Quick Actions', icon: '⚡' },
+    { id: 'social', label: 'Social Media', icon: '📱' },
+    { id: 'mission', label: 'Mission Control', icon: '🎯' },
+    { id: 'humanitarian', label: 'Humanitarian', icon: '🌍' },
+    { id: 'web', label: 'Web Development', icon: '🌐' },
+    { id: 'education', label: 'Education', icon: '🎓' },
+    { id: 'creative', label: 'Creative Studio', icon: '🎨' },
+    { id: 'marketing', label: 'Marketing AI', icon: '📢' },
+    { id: 'invention', label: 'Invention Hub', icon: '💡' },
+    { id: 'integrations', label: 'Integrations', icon: '🔗' },
+    { id: 'ifttt', label: 'IFTTT Automation', icon: '🔄' },
+    { id: 'boardroom', label: 'Boardroom', icon: '👥' },
+    { id: 'agents', label: 'Agent Framework', icon: '🤖' },
+    { id: 'specialized', label: 'Specialized Agents', icon: '🛡️' },
+    { id: 'security', label: 'Security Center', icon: '🔒' },
+    { id: 'evaluation', label: 'Evaluation', icon: '📋' }
   ];
 
   return (
-    <div className="flex gap-2 mb-8 overflow-x-auto">
-      {tabs.map(({ id, label, icon: Icon }) => (
-        <Button
-          key={id}
-          variant={activeTab === id ? "default" : "ghost"}
-          onClick={() => setActiveTab(id)}
-          className={`flex items-center gap-2 whitespace-nowrap ${
-            activeTab === id 
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
-              : 'hover:bg-slate-200'
-          }`}
-        >
-          <Icon className="w-4 h-4" />
-          {label}
-        </Button>
-      ))}
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-2 mb-6 border border-slate-200 dark:border-slate-700">
+      <div className="flex flex-wrap gap-1">
+        {navigationTabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${activeTab === tab.id
+                ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+              }
+            `}
+          >
+            <span className="text-base">{tab.icon}</span>
+            <span className="hidden sm:inline whitespace-nowrap">{tab.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
