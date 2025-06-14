@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Template } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import type { CreativeAgent, AccessibilityOptions } from '@/types/creative';
 
 interface TemplateManagerProps {
@@ -29,7 +29,7 @@ export const TemplateManager = ({ agents, settings }: TemplateManagerProps) => {
       <Card>
         <CardContent className="flex items-center justify-center h-96">
           <div className="text-center">
-            <Template className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium mb-2">Template Manager Coming Soon</h3>
             <p className="text-gray-600">Professional templates for all your creative needs</p>
           </div>

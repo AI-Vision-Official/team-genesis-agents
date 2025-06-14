@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +9,6 @@ import {
   Image, 
   Video, 
   Lightbulb, 
-  Template,
   Shirt,
   Music,
   Search,
@@ -76,7 +74,7 @@ export const CreativeCenter = ({ agents }: CreativeCenterProps) => {
       id: 'templates',
       title: 'Template Manager',
       description: 'Documents, presentations & social templates',
-      icon: Template,
+      icon: FileText,
       color: 'bg-orange-500',
       projects: 31
     },
