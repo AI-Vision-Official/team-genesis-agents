@@ -13,6 +13,7 @@ import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
 import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
 import { AgentFrameworkCenter } from '@/components/agents/AgentFrameworkCenter';
 import { InventionCenter } from '@/components/invention/InventionCenter';
+import { IntegrationsCenter } from '@/components/integrations/IntegrationsCenter';
 import { DashboardOverview } from './DashboardOverview';
 
 // Import mock data
@@ -99,6 +100,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         executionLogs={mockIFTTTLogs}
         stats={mockIFTTTStats}
       />;
+    
+    case 'integrations':
+      return <IntegrationsCenter />;
     
     case 'creative':
       return <CreativeCenter agents={mockCreativeAgents} />;
