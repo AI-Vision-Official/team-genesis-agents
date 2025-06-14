@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,7 @@ interface Task {
   description: string;
   assignedTo: string;
   status: 'active' | 'pending' | 'in-progress' | 'spawning-agents' | 'completed';
-  priority: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
   progress: number;
   spawnedAgents: string[];
 }
