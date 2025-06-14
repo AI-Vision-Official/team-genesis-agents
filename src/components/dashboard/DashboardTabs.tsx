@@ -1,4 +1,3 @@
-
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
@@ -14,6 +13,7 @@ import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
 import { AgentFrameworkCenter } from '@/components/agents/AgentFrameworkCenter';
 import { InventionCenter } from '@/components/invention/InventionCenter';
 import { IntegrationsCenter } from '@/components/integrations/IntegrationsCenter';
+import { SecurityCenter } from '@/components/security/SecurityCenter';
 import { DashboardOverview } from './DashboardOverview';
 
 // Import mock data
@@ -121,6 +121,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'evaluation':
       return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
+    
+    case 'security':
+      return <SecurityCenter />;
     
     default:
       return <DashboardOverview />;
