@@ -11,6 +11,7 @@ import { SocialMediaCenter } from '@/components/socialMedia/SocialMediaCenter';
 import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
 import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
 import { AgentFrameworkCenter } from '@/components/agents/AgentFrameworkCenter';
+import { InventionCenter } from '@/components/invention/InventionCenter';
 import { DashboardOverview } from './DashboardOverview';
 import type { WebAgent, WebProject } from '@/types/webDevelopment';
 import type { HumanitarianProject, CrisisAlert } from '@/types/humanitarian';
@@ -398,6 +399,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'agent-framework':
       return <AgentFrameworkCenter />;
+    
+    case 'invention':
+      return <InventionCenter />;
     
     case 'agents':
       return (
