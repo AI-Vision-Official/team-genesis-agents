@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Bot, Users, Zap, Activity, Plus, Settings, Eye } from 'lucide-react';
+import { Bot, Users, Zap, Activity, Plus, Settings, Eye, Brain } from 'lucide-react';
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
 import { EvaluationSystem } from '@/components/evaluation/EvaluationSystem';
+import { MissionControlCenter } from '@/components/missionControl/MissionControlCenter';
 
 interface Agent {
   id: string;
@@ -131,6 +132,7 @@ const Dashboard = () => {
         <div className="flex gap-2 mb-8">
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
+            { id: 'mission-control', label: 'Mission Control', icon: Brain },
             { id: 'agents', label: 'Agents', icon: Bot },
             { id: 'teams', label: 'Teams', icon: Users },
             { id: 'tasks', label: 'Tasks', icon: Zap },
@@ -247,6 +249,11 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Mission Control Tab */}
+        {activeTab === 'mission-control' && (
+          <MissionControlCenter agents={mockAgents} tasks={mockTasks} />
         )}
 
         {/* Agents Tab */}
