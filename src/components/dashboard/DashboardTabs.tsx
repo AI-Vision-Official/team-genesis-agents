@@ -22,6 +22,12 @@ import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
 import { mockCreativeAgents } from '@/data/mockCreativeData';
+import { 
+  mockIFTTTRules, 
+  mockIFTTTPlatforms, 
+  mockIFTTTLogs, 
+  mockIFTTTStats 
+} from '@/data/mockIFTTTData';
 
 interface Agent {
   id: string;
@@ -53,84 +59,19 @@ interface DashboardTabsProps {
 }
 
 export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTabsProps) => {
-  // Mock data for components that need specific props
-  const mockIFTTTRules = [
-    {
-      id: '1',
-      name: 'Auto Social Media Post',
-      description: 'Automatically post to social media when a new blog is published',
-      enabled: true,
-      createdBy: 'system',
-      createdAt: new Date(),
-      triggerCount: 15,
-      trigger: {
-        id: '1',
-        type: 'webhook' as const,
-        platform: 'blog',
-        event: 'post_published',
-        parameters: {}
-      },
-      conditions: [],
-      actions: [{
-        id: '1',
-        type: 'post_social_media' as const,
-        platform: 'twitter',
-        operation: 'create_post',
-        parameters: {}
-      }],
-      priority: 'medium' as const,
-      category: 'social_media' as const
-    }
-  ];
-
-  const mockPlatforms = [
-    {
-      id: '1',
-      name: 'Twitter',
-      type: 'social_media' as const,
-      icon: '🐦',
-      connected: true,
-      authRequired: true,
-      availableTriggers: ['mention', 'follow'],
-      availableActions: ['post', 'reply']
-    }
-  ];
-
-  const mockExecutionLogs = [
-    {
-      id: '1',
-      ruleId: '1',
-      ruleName: 'Auto Social Media Post',
-      timestamp: new Date(),
-      status: 'success' as const,
-      triggerData: {},
-      executedActions: ['post_social_media'],
-      executionTime: 150
-    }
-  ];
-
-  const mockIFTTTStats = {
-    totalRules: 5,
-    activeRules: 3,
-    totalExecutions: 45,
-    successRate: 92,
-    topCategories: [
-      { category: 'social_media', count: 15 },
-      { category: 'productivity', count: 10 }
-    ],
-    recentExecutions: mockExecutionLogs,
-    performanceMetrics: {
-      averageExecutionTime: 180,
-      totalDataProcessed: 1024,
-      apiCallsMade: 150
-    }
-  };
-
   const mockBoardroomSettings = {
     workspaceTheme: 'professional' as const,
     notificationLevel: 'important' as const,
     autoSave: true,
-    collaborationMode: 'team' as const
+    collaborationMode: 'team' as const,
+    dyslexiaFont: false,
+    highContrast: false,
+    reducedMotion: false,
+    largeText: false,
+    keyboardNavigation: false,
+    screenReader: false,
+    colorBlindSupport: false,
+    focusIndicators: true
   };
 
   const renderTabContent = () => {
@@ -158,8 +99,8 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
       case 'ifttt':
         return <IFTTTCenter 
           rules={mockIFTTTRules} 
-          platforms={mockPlatforms} 
-          executionLogs={mockExecutionLogs} 
+          platforms={mockIFTTTPlatforms} 
+          executionLogs={mockIFTTTLogs} 
           stats={mockIFTTTStats} 
         />;
       case 'boardroom':
