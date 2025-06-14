@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,11 +131,11 @@ This content has been generated with accessibility in mind, ensuring it's readab
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="short">Short (< 500 words)</SelectItem>
+                    <SelectItem value="short">Short (&lt; 500 words)</SelectItem>
                     <SelectItem value="medium">Medium (500-1500 words)</SelectItem>
-                    <SelectItem value="long">Long (> 1500 words)</SelectItem>
+                    <SelectItem value="long">Long (&gt; 1500 words)</SelectItem>
                   </SelectContent>
-                </Select>
+                </SelectContent>
               </div>
 
               <div>
@@ -242,7 +241,6 @@ This content has been generated with accessibility in mind, ensuring it's readab
         </Card>
       </div>
 
-      {/* Recent Projects */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Content Projects</CardTitle>
