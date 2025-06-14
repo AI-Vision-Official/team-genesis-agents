@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -135,7 +136,7 @@ This content has been generated with accessibility in mind, ensuring it's readab
                     <SelectItem value="medium">Medium (500-1500 words)</SelectItem>
                     <SelectItem value="long">Long (&gt; 1500 words)</SelectItem>
                   </SelectContent>
-                </SelectContent>
+                </Select>
               </div>
 
               <div>
