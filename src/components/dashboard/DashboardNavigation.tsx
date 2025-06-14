@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Bot, Users, Zap, Activity, Eye, Brain, Megaphone } from 'lucide-react';
+import { Bot, Users, Zap, Activity, Eye, Brain, Megaphone, Globe } from 'lucide-react';
 
 interface DashboardNavigationProps {
   activeTab: string;
@@ -15,17 +15,18 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'teams', label: 'Teams', icon: Users },
     { id: 'tasks', label: 'Tasks', icon: Zap },
     { id: 'marketing', label: 'Marketing AI', icon: Megaphone },
+    { id: 'web-development', label: 'Web Development', icon: Globe },
     { id: 'evaluation', label: 'Evaluation', icon: Eye }
   ];
 
   return (
-    <div className="flex gap-2 mb-8">
+    <div className="flex gap-2 mb-8 overflow-x-auto">
       {tabs.map(({ id, label, icon: Icon }) => (
         <Button
           key={id}
           variant={activeTab === id ? "default" : "ghost"}
           onClick={() => setActiveTab(id)}
-          className={`flex items-center gap-2 ${
+          className={`flex items-center gap-2 whitespace-nowrap ${
             activeTab === id 
               ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' 
               : 'hover:bg-slate-200'
