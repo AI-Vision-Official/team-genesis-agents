@@ -4,6 +4,7 @@ import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
 import { EvaluationSystem } from '@/components/evaluation/EvaluationSystem';
 import { MissionControlCenter } from '@/components/missionControl/MissionControlCenter';
+import { MarketingAICenter } from '@/components/marketing/MarketingAICenter';
 import { DashboardOverview } from './DashboardOverview';
 
 interface Agent {
@@ -57,6 +58,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'tasks':
       return <TaskBoard tasks={mockTasks} />;
+    
+    case 'marketing':
+      return <MarketingAICenter />;
     
     case 'evaluation':
       return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
