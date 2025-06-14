@@ -6,18 +6,21 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Zap, 
   Bot, 
-  Share2, 
-  Brain, 
   Shield, 
   Heart, 
-  Globe, 
-  MessageSquare,
-  TrendingUp,
+  RefreshCw, 
   AlertTriangle,
-  RefreshCw,
   Play,
   Pause,
-  Settings
+  Settings,
+  Download,
+  Upload,
+  Database,
+  Globe,
+  Users,
+  Brain,
+  Target,
+  TrendingUp
 } from 'lucide-react';
 
 interface QuickAction {
@@ -25,140 +28,139 @@ interface QuickAction {
   title: string;
   description: string;
   icon: React.ReactNode;
-  category: 'agents' | 'missions' | 'social' | 'security' | 'analytics';
+  category: 'system' | 'agents' | 'missions' | 'data' | 'monitoring';
   danger?: boolean;
-  action: () => void;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
 export const QuickActionsPanel = () => {
-  const [executing, setExecuting] = useState<string | null>(null);
-
-  const executeAction = async (actionId: string, action: () => void) => {
-    setExecuting(actionId);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate action
-      action();
-    } finally {
-      setExecuting(null);
-    }
-  };
+  const [executingAction, setExecutingAction] = useState<string | null>(null);
+  const [recentActions, setRecentActions] = useState<string[]>([]);
 
   const quickActions: QuickAction[] = [
-    // Agent Management
+    // System Actions
     {
-      id: 'spawn-agent',
-      title: 'Spawn New Agent',
-      description: 'Create a specialized AI agent for urgent tasks',
-      icon: <Bot className="w-5 h-5" />,
-      category: 'agents',
-      action: () => console.log('Spawning new agent...')
-    },
-    {
-      id: 'restart-all',
-      title: 'Restart All Agents',
-      description: 'Restart all AI agents (use with caution)',
-      icon: <RefreshCw className="w-5 h-5" />,
-      category: 'agents',
-      danger: true,
-      action: () => console.log('Restarting all agents...')
-    },
-    {
-      id: 'health-check',
-      title: 'System Health Check',
-      description: 'Run comprehensive health diagnostic',
-      icon: <Heart className="w-5 h-5" />,
-      category: 'agents',
-      action: () => console.log('Running health check...')
-    },
-
-    // Mission Control
-    {
-      id: 'emergency-mission',
-      title: 'Emergency Mission',
-      description: 'Launch crisis response protocol',
+      id: 'emergency-stop',
+      title: 'Emergency Stop All',
+      description: 'Immediately halt all agent operations',
       icon: <AlertTriangle className="w-5 h-5" />,
+      category: 'system',
+      danger: true
+    },
+    {
+      id: 'restart-system',
+      title: 'Restart System',
+      description: 'Full system restart with health checks',
+      icon: <RefreshCw className="w-5 h-5" />,
+      category: 'system',
+      danger: true
+    },
+    {
+      id: 'backup-now',
+      title: 'Create Backup',
+      description: 'Instant backup of all configurations',
+      icon: <Download className="w-5 h-5" />,
+      category: 'data'
+    },
+    
+    // Agent Actions
+    {
+      id: 'spawn-analyst',
+      title: 'Spawn Data Analyst',
+      description: 'Quick spawn specialized data analysis agent',
+      icon: <Bot className="w-5 h-5" />,
+      category: 'agents'
+    },
+    {
+      id: 'spawn-security',
+      title: 'Spawn Security Agent',
+      description: 'Deploy security monitoring agent',
+      icon: <Shield className="w-5 h-5" />,
+      category: 'agents'
+    },
+    {
+      id: 'health-check-all',
+      title: 'Health Check All',
+      description: 'Run comprehensive health check on all agents',
+      icon: <Heart className="w-5 h-5" />,
+      category: 'agents'
+    },
+    
+    // Mission Actions
+    {
+      id: 'start-crisis-mode',
+      title: 'Activate Crisis Mode',
+      description: 'Enable crisis response protocols',
+      icon: <Target className="w-5 h-5" />,
       category: 'missions',
-      danger: true,
-      action: () => console.log('Launching emergency mission...')
+      danger: true
     },
     {
-      id: 'auto-optimize',
-      title: 'Auto-Optimize',
-      description: 'AI-powered system optimization',
-      icon: <Brain className="w-5 h-5" />,
-      category: 'missions',
-      action: () => console.log('Running auto-optimization...')
-    },
-
-    // Social Media
-    {
-      id: 'social-blast',
-      title: 'Social Media Blast',
-      description: 'Post to all connected platforms',
-      icon: <Share2 className="w-5 h-5" />,
-      category: 'social',
-      action: () => console.log('Posting to all platforms...')
-    },
-    {
-      id: 'engagement-boost',
-      title: 'Engagement Boost',
-      description: 'Activate high-engagement protocols',
+      id: 'run-analysis',
+      title: 'Run Market Analysis',
+      description: 'Start comprehensive market research',
       icon: <TrendingUp className="w-5 h-5" />,
-      category: 'social',
-      action: () => console.log('Boosting engagement...')
+      category: 'missions'
     },
-
-    // Security
+    
+    // Monitoring Actions
     {
-      id: 'security-scan',
-      title: 'Security Scan',
-      description: 'Full system security audit',
-      icon: <Shield className="w-5 h-5" />,
-      category: 'security',
-      action: () => console.log('Running security scan...')
+      id: 'enable-monitoring',
+      title: 'Enable Full Monitoring',
+      description: 'Activate all monitoring systems',
+      icon: <Globe className="w-5 h-5" />,
+      category: 'monitoring'
     },
-    {
-      id: 'lockdown',
-      title: 'Emergency Lockdown',
-      description: 'Secure all systems immediately',
-      icon: <Shield className="w-5 h-5" />,
-      category: 'security',
-      danger: true,
-      action: () => console.log('Initiating lockdown...')
-    },
-
-    // Analytics
     {
       id: 'generate-report',
-      title: 'Generate Report',
-      description: 'Create comprehensive analytics report',
-      icon: <TrendingUp className="w-5 h-5" />,
-      category: 'analytics',
-      action: () => console.log('Generating report...')
+      title: 'Generate Status Report',
+      description: 'Create comprehensive system report',
+      icon: <Database className="w-5 h-5" />,
+      category: 'monitoring'
+    },
+    
+    // Data Actions
+    {
+      id: 'sync-platforms',
+      title: 'Sync All Platforms',
+      description: 'Synchronize data across all connected platforms',
+      icon: <Upload className="w-5 h-5" />,
+      category: 'data'
     },
     {
-      id: 'global-status',
-      title: 'Global Status',
-      description: 'Check status across all platforms',
-      icon: <Globe className="w-5 h-5" />,
-      category: 'analytics',
-      action: () => console.log('Checking global status...')
+      id: 'optimize-performance',
+      title: 'Optimize Performance',
+      description: 'Run AI optimization on all systems',
+      icon: <Brain className="w-5 h-5" />,
+      category: 'system'
     }
   ];
 
-  const categories = {
-    agents: { name: 'Agent Management', color: 'bg-blue-500' },
-    missions: { name: 'Mission Control', color: 'bg-purple-500' },
-    social: { name: 'Social Media', color: 'bg-green-500' },
-    security: { name: 'Security', color: 'bg-red-500' },
-    analytics: { name: 'Analytics', color: 'bg-yellow-500' }
+  const executeAction = async (actionId: string) => {
+    setExecutingAction(actionId);
+    
+    // Simulate action execution
+    console.log(`Executing action: ${actionId}`);
+    
+    // Add artificial delay to simulate processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setExecutingAction(null);
+    setRecentActions(prev => [actionId, ...prev.slice(0, 4)]); // Keep last 5 actions
   };
 
-  const groupedActions = quickActions.reduce((acc, action) => {
-    if (!acc[action.category]) acc[action.category] = [];
-    acc[action.category].push(action);
-    return acc;
-  }, {} as Record<string, QuickAction[]>);
+  const getActionsByCategory = (category: string) => {
+    return quickActions.filter(action => action.category === category);
+  };
+
+  const categories = [
+    { id: 'system', label: 'System', icon: <Settings className="w-4 h-4" /> },
+    { id: 'agents', label: 'Agents', icon: <Bot className="w-4 h-4" /> },
+    { id: 'missions', label: 'Missions', icon: <Target className="w-4 h-4" /> },
+    { id: 'monitoring', label: 'Monitoring', icon: <Globe className="w-4 h-4" /> },
+    { id: 'data', label: 'Data', icon: <Database className="w-4 h-4" /> }
+  ];
 
   return (
     <div className="space-y-6">
@@ -166,75 +168,104 @@ export const QuickActionsPanel = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Zap className="w-6 h-6 text-yellow-500" />
-            Quick Actions
+            <Zap className="w-6 h-6 text-yellow-600" />
+            Quick Actions Panel
           </h2>
-          <p className="text-slate-600 mt-1">One-click access to essential system operations</p>
+          <p className="text-slate-600 mt-1">One-click access to common system operations</p>
         </div>
-        <Button variant="outline">
-          <Settings className="w-4 h-4 mr-2" />
-          Customize
-        </Button>
+        {recentActions.length > 0 && (
+          <div className="text-sm text-slate-600">
+            Last action: {quickActions.find(a => a.id === recentActions[0])?.title}
+          </div>
+        )}
       </div>
 
-      {/* Action Categories */}
+      {/* Recent Actions */}
+      {recentActions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Actions</CardTitle>
+            <CardDescription>Last {recentActions.length} executed actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {recentActions.map((actionId, index) => {
+                const action = quickActions.find(a => a.id === actionId);
+                return action ? (
+                  <Badge key={`${actionId}-${index}`} variant="outline" className="flex items-center gap-1">
+                    {action.icon}
+                    {action.title}
+                  </Badge>
+                ) : null;
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Actions by Category */}
       <div className="space-y-6">
-        {Object.entries(groupedActions).map(([categoryKey, actions]) => {
-          const category = categories[categoryKey as keyof typeof categories];
+        {categories.map((category) => {
+          const actions = getActionsByCategory(category.id);
           return (
-            <Card key={categoryKey}>
-              <CardHeader className="pb-3">
+            <Card key={category.id}>
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${category.color}`} />
-                  {category.name}
+                  {category.icon}
+                  {category.label} Actions
                 </CardTitle>
                 <CardDescription>
-                  Quick actions for {category.name.toLowerCase()}
+                  Quick access to {category.label.toLowerCase()} operations
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {actions.map((action) => (
-                    <Card key={action.id} className={`cursor-pointer transition-all hover:shadow-md ${
-                      action.danger ? 'border-red-200 hover:border-red-300' : 'hover:border-blue-300'
-                    }`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            action.danger ? 'bg-red-100' : 'bg-blue-100'
-                          }`}>
-                            {action.icon}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium text-sm">{action.title}</h4>
-                              {action.danger && (
-                                <Badge variant="destructive" className="text-xs">Danger</Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-slate-600 mb-3">{action.description}</p>
-                            <Button 
-                              size="sm" 
-                              className={`w-full ${action.danger ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                              onClick={() => executeAction(action.id, action.action)}
-                              disabled={executing === action.id}
-                            >
-                              {executing === action.id ? (
-                                <>
-                                  <RefreshCw className="w-3 h-3 mr-2 animate-spin" />
-                                  Executing...
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="w-3 h-3 mr-2" />
-                                  Execute
-                                </>
-                              )}
-                            </Button>
-                          </div>
+                    <div
+                      key={action.id}
+                      className={`p-4 border rounded-lg transition-all hover:shadow-md ${
+                        action.danger 
+                          ? 'border-red-200 bg-red-50 hover:bg-red-100' 
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          {action.icon}
+                          <h4 className="font-medium">{action.title}</h4>
                         </div>
-                      </CardContent>
-                    </Card>
+                        {action.danger && (
+                          <Badge variant="destructive" className="text-xs">
+                            Danger
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-600 mb-4">
+                        {action.description}
+                      </p>
+                      <Button
+                        onClick={() => executeAction(action.id)}
+                        disabled={action.disabled || executingAction === action.id}
+                        className={`w-full ${
+                          action.danger 
+                            ? 'bg-red-600 hover:bg-red-700 text-white' 
+                            : ''
+                        }`}
+                        variant={action.danger ? 'destructive' : 'default'}
+                      >
+                        {executingAction === action.id ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Executing...
+                          </>
+                        ) : (
+                          <>
+                            {action.icon}
+                            <span className="ml-2">Execute</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </CardContent>
@@ -242,58 +273,6 @@ export const QuickActionsPanel = () => {
           );
         })}
       </div>
-
-      {/* Emergency Actions */}
-      <Card className="border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-800 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
-            Emergency Controls
-          </CardTitle>
-          <CardDescription className="text-red-600">
-            Use these controls only in critical situations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Button 
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => executeAction('emergency-stop', () => console.log('Emergency stop activated'))}
-              disabled={executing === 'emergency-stop'}
-            >
-              {executing === 'emergency-stop' ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Stopping...
-                </>
-              ) : (
-                <>
-                  <Pause className="w-4 h-4 mr-2" />
-                  Emergency Stop All
-                </>
-              )}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-red-300 text-red-700 hover:bg-red-50"
-              onClick={() => executeAction('full-reset', () => console.log('Full system reset initiated'))}
-              disabled={executing === 'full-reset'}
-            >
-              {executing === 'full-reset' ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Resetting...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Full System Reset
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

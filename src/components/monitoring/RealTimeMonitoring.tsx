@@ -5,6 +5,9 @@ import { MonitoringHeader } from './MonitoringHeader';
 import { SystemMetricsCard } from './SystemMetricsCard';
 import { AgentMetricsCard } from './AgentMetricsCard';
 import { AlertsPanel } from './AlertsPanel';
+import { AgentHealthDashboard } from './AgentHealthDashboard';
+import { SmartNotificationSystem } from '../notifications/SmartNotificationSystem';
+import { QuickActionsPanel } from '../quickActions/QuickActionsPanel';
 import type { SystemMetric, AgentMetric } from '@/types/monitoring';
 
 export const RealTimeMonitoring = () => {
@@ -151,12 +154,19 @@ export const RealTimeMonitoring = () => {
         onToggleMonitoring={() => setIsMonitoring(!isMonitoring)} 
       />
 
-      <Tabs defaultValue="system" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full">
+      <Tabs defaultValue="health" className="w-full">
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="health">Agent Health</TabsTrigger>
           <TabsTrigger value="system">System Metrics</TabsTrigger>
           <TabsTrigger value="agents">Agent Performance</TabsTrigger>
-          <TabsTrigger value="alerts">Alerts & Notifications</TabsTrigger>
+          <TabsTrigger value="notifications">Smart Alerts</TabsTrigger>
+          <TabsTrigger value="actions">Quick Actions</TabsTrigger>
+          <TabsTrigger value="alerts">Legacy Alerts</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="health" className="space-y-6">
+          <AgentHealthDashboard />
+        </TabsContent>
 
         <TabsContent value="system" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -172,6 +182,14 @@ export const RealTimeMonitoring = () => {
               <AgentMetricsCard key={agent.agentId} agent={agent} />
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <SmartNotificationSystem />
+        </TabsContent>
+
+        <TabsContent value="actions" className="space-y-6">
+          <QuickActionsPanel />
         </TabsContent>
 
         <TabsContent value="alerts" className="space-y-6">
