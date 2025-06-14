@@ -116,7 +116,7 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
       case 'security':
         return <SecurityCenter />;
       case 'evaluation':
-        return <EvaluationSystem />;
+        return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
       case 'health':
         return <AgentHealthDashboard />;
       case 'notifications':
