@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -184,7 +183,7 @@ export const LocalizationHub = ({ projects }: LocalizationHubProps) => {
                               <div className="w-16">
                                 <Progress value={lang.progress} className="h-2" />
                               </div>
-                              <Badge className={getStatusColor(lang.status)} size="sm">
+                              <Badge className={getStatusColor(lang.status)}>
                                 {lang.status === 'completed' ? '✓' : lang.progress + '%'}
                               </Badge>
                             </div>
