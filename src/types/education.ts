@@ -45,7 +45,7 @@ export type CertificateStatus =
   | 'pending_renewal'
   | 'revoked';
 
-export interface CertificateFilters {
+export interface CertificateFilterOptions {
   search?: string;
   category?: CertificateCategory;
   type?: CertificateType;

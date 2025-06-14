@@ -10,11 +10,11 @@ import { EducationDashboard } from './EducationDashboard';
 import { ExpirationAlerts } from './ExpirationAlerts';
 import { MilestoneTracker } from './MilestoneTracker';
 import { mockCertificates, mockSummary, mockAlerts, mockMilestones } from '@/data/mockEducationData';
-import type { Certificate, CertificateFilters as FilterType } from '@/types/education';
+import type { Certificate, CertificateFilterOptions } from '@/types/education';
 
 export const EducationCenter = () => {
   const [certificates] = useState<Certificate[]>(mockCertificates);
-  const [filters, setFilters] = useState<FilterType>({});
+  const [filters, setFilters] = useState<CertificateFilterOptions>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const filteredCertificates = useMemo(() => {

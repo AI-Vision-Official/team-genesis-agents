@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,11 +12,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Grid, List, X, Calendar } from 'lucide-react';
-import type { CertificateFilters, CertificateCategory, CertificateType, CertificateStatus } from '@/types/education';
+import type { CertificateFilterOptions, CertificateCategory, CertificateType, CertificateStatus } from '@/types/education';
 
 interface CertificateFiltersProps {
-  filters: CertificateFilters;
-  onFiltersChange: (filters: CertificateFilters) => void;
+  filters: CertificateFilterOptions;
+  onFiltersChange: (filters: CertificateFilterOptions) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
   totalResults: number;
@@ -45,7 +44,7 @@ export const CertificateFilters = ({
     'active', 'expired', 'expiring_soon', 'pending_renewal', 'revoked'
   ];
 
-  const updateFilter = (key: keyof CertificateFilters, value: any) => {
+  const updateFilter = (key: keyof CertificateFilterOptions, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 

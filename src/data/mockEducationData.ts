@@ -1,4 +1,3 @@
-
 import type { Certificate, CertificateSummary, ExpirationAlert, Milestone } from '@/types/education';
 
 export const mockCertificates: Certificate[] = [
@@ -28,7 +27,7 @@ export const mockCertificates: Certificate[] = [
     expirationDate: new Date('2026-11-20'),
     verificationNumber: 'AWS-SA-2023-123456',
     category: 'technology',
-    type: 'certification',
+    type: 'certificate',
     status: 'active',
     description: 'Professional-level certification for designing distributed applications on AWS.',
     skills: ['AWS', 'Cloud Architecture', 'EC2', 'S3', 'Lambda'],
@@ -46,7 +45,7 @@ export const mockCertificates: Certificate[] = [
     expirationDate: new Date('2025-08-10'),
     verificationNumber: 'PMI-PMP-2022-789123',
     category: 'professional',
-    type: 'certification',
+    type: 'certificate',
     status: 'expiring_soon',
     description: 'Globally recognized project management certification.',
     skills: ['Project Management', 'Agile', 'Risk Management', 'Leadership'],
@@ -96,7 +95,7 @@ export const mockCertificates: Certificate[] = [
     expirationDate: new Date('2024-03-22'),
     verificationNumber: 'ISC2-CISSP-2021-456123',
     category: 'technology',
-    type: 'certification',
+    type: 'certificate',
     status: 'expired',
     description: 'Advanced cybersecurity certification for experienced professionals.',
     skills: ['Cybersecurity', 'Risk Management', 'Security Architecture', 'Incident Response'],
