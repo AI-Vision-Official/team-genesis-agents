@@ -32,8 +32,13 @@ export const CertificateFilters = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const categories: CertificateCategory[] = [
-    'technology', 'business', 'healthcare', 'education', 'creative', 
-    'language', 'professional', 'academic', 'certification', 'other'
+    'agriculture', 'animals', 'beauty', 'communication', 'economy', 'education', 
+    'general', 'hobby', 'horeca', 'humanitarian', 'it', 'linguistics', 'medical', 
+    'medical_autism', 'medical_ce', 'medical_first_aid', 'music', 'nature', 
+    'nutrition', 'photography', 'psychology', 'religion', 'religion_ordination', 
+    'safety', 'safety_fire', 'spiritual', 'spiritual_reiki', 'sports', 
+    'technology', 'transportation', 'transportation_drone', 'travel', 
+    'university', 'wildlife'
   ];
 
   const types: CertificateType[] = [
@@ -65,6 +70,13 @@ export const CertificateFilters = ({
 
   const parseDateFromInput = (dateString: string) => {
     return dateString ? new Date(dateString) : undefined;
+  };
+
+  const formatCategoryName = (category: string) => {
+    return category
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -161,7 +173,7 @@ export const CertificateFilters = ({
                     <SelectItem value="">All categories</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                        {formatCategoryName(category)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -292,7 +304,7 @@ export const CertificateFilters = ({
           )}
           {filters.category && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Category: {filters.category}
+              Category: {formatCategoryName(filters.category)}
               <X 
                 className="w-3 h-3 cursor-pointer" 
                 onClick={() => updateFilter('category', undefined)}
