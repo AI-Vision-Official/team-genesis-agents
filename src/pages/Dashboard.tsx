@@ -9,10 +9,33 @@ import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
 
+interface Agent {
+  id: string;
+  name: string;
+  type: string;
+  status: 'active' | 'idle' | 'spawning' | 'error';
+  capabilities: string[];
+  currentTask: string;
+  efficiency: number;
+  tasksCompleted: number;
+  spawnedAgents: number;
+}
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  assignedTo: string;
+  status: 'active' | 'pending' | 'in-progress' | 'spawning-agents' | 'completed';
+  priority: string;
+  progress: number;
+  spawnedAgents: string[];
+}
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  const mockAgents = [
+  const mockAgents: Agent[] = [
     {
       id: '1',
       name: 'DataAnalyst-Alpha',
@@ -48,7 +71,7 @@ const Dashboard = () => {
     }
   ];
 
-  const mockTasks = [
+  const mockTasks: Task[] = [
     {
       id: '1',
       title: 'Customer Sentiment Analysis',

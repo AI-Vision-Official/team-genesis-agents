@@ -256,7 +256,7 @@ const AgentCreator = () => {
                       <Checkbox
                         id="canSpawnAgents"
                         checked={canSpawnAgents}
-                        onCheckedChange={setCanSpawnAgents}
+                        onCheckedChange={(checked) => setCanSpawnAgents(checked === true)}
                       />
                       <Label htmlFor="canSpawnAgents" className="text-sm font-medium">
                         Enable agent spawning capabilities
