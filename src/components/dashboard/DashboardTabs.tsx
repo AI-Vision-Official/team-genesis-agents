@@ -71,13 +71,17 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     keyboardNavigation: false,
     screenReader: false,
     colorBlindSupport: false,
-    focusIndicators: true
+    focusIndicators: true,
+    voiceToText: false,
+    textToSpeech: false,
+    quietMode: false,
+    focusMode: false
   };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <DashboardOverview agents={mockAgents} tasks={mockTasks} />;
+        return <DashboardOverview />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':
@@ -112,7 +116,7 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
       case 'security':
         return <SecurityCenter />;
       case 'evaluation':
-        return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
+        return <EvaluationSystem />;
       case 'health':
         return <AgentHealthDashboard />;
       case 'notifications':
@@ -120,7 +124,7 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
       case 'actions':
         return <QuickActionsPanel />;
       default:
-        return <DashboardOverview agents={mockAgents} tasks={mockTasks} />;
+        return <DashboardOverview />;
     }
   };
 
