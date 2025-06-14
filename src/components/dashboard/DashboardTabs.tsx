@@ -10,6 +10,7 @@ import { HumanitarianCenter } from '@/components/humanitarian/HumanitarianCenter
 import { CreativeCenter } from '@/components/creative/CreativeCenter';
 import { SocialMediaCenter } from '@/components/socialMedia/SocialMediaCenter';
 import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
+import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
 import { DashboardOverview } from './DashboardOverview';
 import type { WebAgent, WebProject } from '@/types/webDevelopment';
 import type { HumanitarianProject, CrisisAlert } from '@/types/humanitarian';
