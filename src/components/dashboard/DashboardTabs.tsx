@@ -1,3 +1,4 @@
+
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
@@ -11,6 +12,7 @@ import { SocialMediaCenter } from '@/components/socialMedia/SocialMediaCenter';
 import { BoardroomCenter } from '@/components/boardroom/BoardroomCenter';
 import { IFTTTCenter } from '@/components/ifttt/IFTTTCenter';
 import { AgentFrameworkCenter } from '@/components/agents/AgentFrameworkCenter';
+import { SpecializedAgentsCenter } from '@/components/agents/SpecializedAgentsCenter';
 import { InventionCenter } from '@/components/invention/InventionCenter';
 import { IntegrationsCenter } from '@/components/integrations/IntegrationsCenter';
 import { SecurityCenter } from '@/components/security/SecurityCenter';
