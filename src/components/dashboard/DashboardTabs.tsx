@@ -16,6 +16,7 @@ import { SpecializedAgentsCenter } from '@/components/agents/SpecializedAgentsCe
 import { InventionCenter } from '@/components/invention/InventionCenter';
 import { IntegrationsCenter } from '@/components/integrations/IntegrationsCenter';
 import { SecurityCenter } from '@/components/security/SecurityCenter';
+import { EducationCenter } from '@/components/education/EducationCenter';
 import { DashboardOverview } from './DashboardOverview';
 
 // Import mock data
@@ -77,6 +78,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     case 'agent-framework':
       return <AgentFrameworkCenter />;
     
+    case 'specialized-agents':
+      return <SpecializedAgentsCenter />;
+    
     case 'invention':
       return <InventionCenter />;
     
@@ -106,6 +110,12 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     case 'integrations':
       return <IntegrationsCenter />;
     
+    case 'security':
+      return <SecurityCenter />;
+    
+    case 'education':
+      return <EducationCenter />;
+    
     case 'creative':
       return <CreativeCenter agents={mockCreativeAgents} />;
     
@@ -123,9 +133,6 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'evaluation':
       return <EvaluationSystem agents={mockAgents} tasks={mockTasks} />;
-    
-    case 'security':
-      return <SecurityCenter />;
     
     default:
       return <DashboardOverview />;
