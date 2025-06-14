@@ -1,4 +1,3 @@
-
 import { AgentCard } from '@/components/AgentCard';
 import { TaskBoard } from '@/components/TaskBoard';
 import { TeamPanel } from '@/components/TeamPanel';
@@ -7,9 +6,11 @@ import { MissionControlCenter } from '@/components/missionControl/MissionControl
 import { MarketingAICenter } from '@/components/marketing/MarketingAICenter';
 import { WebDevelopmentCenter } from '@/components/webDevelopment/WebDevelopmentCenter';
 import { HumanitarianCenter } from '@/components/humanitarian/HumanitarianCenter';
+import { CreativeCenter } from '@/components/creative/CreativeCenter';
 import { DashboardOverview } from './DashboardOverview';
 import type { WebAgent, WebProject } from '@/types/webDevelopment';
 import type { HumanitarianProject, CrisisAlert } from '@/types/humanitarian';
+import type { CreativeAgent } from '@/types/creative';
 
 interface Agent {
   id: string;
@@ -190,6 +191,54 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     }
   ];
 
+  // Mock data for creative agents
+  const mockCreativeAgents: CreativeAgent[] = [
+    {
+      id: '1',
+      name: 'ContentMaster-Alpha',
+      specialization: 'content_writer',
+      status: 'active',
+      currentProject: 'Blog Series: AI in Education',
+      expertise: ['Technical Writing', 'SEO Content', 'Creative Writing', 'Multilingual'],
+      performanceScore: 96,
+      projectsCompleted: 142,
+      creativityRating: 94
+    },
+    {
+      id: '2',
+      name: 'VisualArtist-Beta',
+      specialization: 'visual_designer',
+      status: 'creating',
+      currentProject: 'Brand Identity Package',
+      expertise: ['Logo Design', 'Illustration', 'UI/UX Design', 'Digital Art'],
+      performanceScore: 91,
+      projectsCompleted: 87,
+      creativityRating: 98
+    },
+    {
+      id: '3',
+      name: 'VideoProducer-Gamma',
+      specialization: 'video_creator',
+      status: 'processing',
+      currentProject: 'Social Media Campaign Videos',
+      expertise: ['Motion Graphics', 'Video Editing', 'Animation', 'Storytelling'],
+      performanceScore: 89,
+      projectsCompleted: 56,
+      creativityRating: 92
+    },
+    {
+      id: '4',
+      name: 'AudioMaestro-Delta',
+      specialization: 'audio_specialist',
+      status: 'idle',
+      currentProject: 'Podcast Intro Music',
+      expertise: ['Music Composition', 'Sound Design', 'Voice Synthesis', 'Audio Editing'],
+      performanceScore: 93,
+      projectsCompleted: 73,
+      creativityRating: 95
+    }
+  ];
+
   switch (activeTab) {
     case 'overview':
       return <DashboardOverview />;
@@ -211,6 +260,9 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
     
     case 'tasks':
       return <TaskBoard tasks={mockTasks} />;
+    
+    case 'creative':
+      return <CreativeCenter agents={mockCreativeAgents} />;
     
     case 'marketing':
       return <MarketingAICenter />;
