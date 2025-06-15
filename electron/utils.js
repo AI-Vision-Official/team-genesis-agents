@@ -17,19 +17,22 @@ export function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       preload: join(__dirname, 'preload.js'),
-      webSecurity: true
+      webSecurity: false, // Temporarily disable for debugging
+      devTools: true // Always allow dev tools
     },
     icon: join(__dirname, '../dist/icon.png'),
-    show: true, // Show immediately instead of waiting
-    center: true, // Center the window on screen
-    autoHideMenuBar: false // Keep menu bar visible
+    show: true,
+    center: true,
+    autoHideMenuBar: false
   });
+
+  // Always enable dev tools for debugging
+  mainWindow.webContents.openDevTools();
 
   // Load the app
   if (isDev) {
     console.log('Development mode: loading from localhost');
     mainWindow.loadURL('http://localhost:8080');
-    mainWindow.webContents.openDevTools();
   } else {
     // In production, try multiple possible paths
     const possiblePaths = [
@@ -44,20 +47,37 @@ export function createWindow() {
     let htmlPath = null;
     const fs = require('fs');
     
+    console.log('=== ELECTRON DEBUG INFO ===');
+    console.log('process.resourcesPath:', process.resourcesPath);
+    console.log('app.getAppPath():', app.getAppPath());
+    console.log('__dirname:', __dirname);
+    
     for (const path of possiblePaths) {
       console.log('Checking path:', path);
       if (fs.existsSync(path)) {
         htmlPath = path;
-        console.log('Found HTML at:', htmlPath);
+        console.log('✓ Found HTML at:', htmlPath);
         break;
+      } else {
+        console.log('✗ Not found:', path);
       }
     }
 
     if (htmlPath) {
+      console.log('Loading file:', htmlPath);
       mainWindow.loadFile(htmlPath);
+      
+      // Check if CSS/JS files exist
+      const distPath = join(htmlPath, '..');
+      console.log('Checking dist folder contents:', distPath);
+      try {
+        const files = fs.readdirSync(distPath);
+        console.log('Files in dist:', files);
+      } catch (err) {
+        console.error('Error reading dist folder:', err);
+      }
     } else {
-      console.error('Could not find index.html in any expected location');
-      // Show error page instead of failing silently
+      console.error('❌ Could not find index.html in any expected location');
       mainWindow.loadURL('data:text/html,<html><body><h1>Error: Could not load application</h1><p>HTML file not found</p></body></html>');
     }
   }
@@ -73,13 +93,27 @@ export function createWindow() {
     }, 1000);
   });
 
-  // Add error handling
+  // Enhanced error handling
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    console.error('Failed to load:', errorDescription, 'URL:', validatedURL);
+    console.error('❌ Failed to load:', errorDescription, 'URL:', validatedURL);
     console.error('Error code:', errorCode);
-    // Show window even if load fails so user can see the error
     mainWindow.show();
     mainWindow.focus();
+  });
+
+  // Log console messages from the renderer process
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[RENDERER ${level}] ${message} (${sourceId}:${line})`);
+  });
+
+  // Log when DOM is ready
+  mainWindow.webContents.on('dom-ready', () => {
+    console.log('✓ DOM is ready');
+  });
+
+  // Log when page finishes loading
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('✓ Page finished loading');
   });
 
   // Prevent navigation to external URLs
