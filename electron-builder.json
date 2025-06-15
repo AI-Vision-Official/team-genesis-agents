@@ -3,18 +3,19 @@
   "appId": "com.teamgenesis.agents",
   "productName": "Team Genesis Agents",
   "directories": {
-    "output": "release"
+    "output": "release",
+    "buildResources": "public"
   },
   "files": [
-    "dist/**/*",
-    "electron/**/*",
-    "package.json",
-    "!node_modules/**/*",
-    "!src/**/*",
-    "!.git/**/*"
+    "dist",
+    "electron",
+    "package.json"
   ],
-  "asarUnpack": [
-    "dist/**/*"
+  "extraResources": [
+    {
+      "from": "dist",
+      "to": "dist"
+    }
   ],
   "win": {
     "target": "nsis",
