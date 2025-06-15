@@ -29,12 +29,26 @@ export function createWindow() {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, use app.getAppPath() which correctly points to the app directory
-    const appPath = app.getAppPath();
-    const htmlPath = join(appPath, 'dist', 'index.html');
+    // In production, check if we're in an asar package or unpacked
+    let htmlPath;
+    
+    if (process.resourcesPath) {
+      // When packaged with electron-builder
+      htmlPath = join(process.resourcesPath, 'app.asar', 'dist', 'index.html');
+      
+      // If asar doesn't exist, try unpacked app structure
+      const fs = require('fs');
+      if (!fs.existsSync(htmlPath)) {
+        htmlPath = join(process.resourcesPath, 'app', 'dist', 'index.html');
+      }
+    } else {
+      // Fallback for development or other scenarios
+      const appPath = app.getAppPath();
+      htmlPath = join(appPath, 'dist', 'index.html');
+    }
     
     console.log('Production mode paths:');
-    console.log('appPath:', appPath);
+    console.log('process.resourcesPath:', process.resourcesPath);
     console.log('htmlPath:', htmlPath);
     
     mainWindow.loadFile(htmlPath);
