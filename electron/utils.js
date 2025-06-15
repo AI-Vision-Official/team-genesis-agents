@@ -25,15 +25,26 @@ export function createWindow() {
 
   // Load the app
   if (isDev) {
+    console.log('Development mode: loading from localhost');
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(join(__dirname, '../dist/index.html'));
+    // Use app.getAppPath() to get the correct path in production
+    const appPath = app.getAppPath();
+    const htmlPath = join(appPath, 'dist', 'index.html');
+    console.log('Production mode: loading from', htmlPath);
+    mainWindow.loadFile(htmlPath);
   }
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
+    console.log('Window ready to show');
     mainWindow.show();
+  });
+
+  // Add error handling
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load:', errorDescription, 'URL:', validatedURL);
   });
 
   // Prevent navigation to external URLs
