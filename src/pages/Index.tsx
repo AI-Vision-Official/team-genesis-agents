@@ -29,6 +29,49 @@ import { DisruptiveInnovations } from '@/components/innovations/DisruptiveInnova
 const Index = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Mock data for agents and tasks
+  const mockAgents = [
+    {
+      id: '1',
+      name: 'Humanitarian Coordinator Alpha',
+      type: 'Disaster Response',
+      status: 'active',
+      performance: 94,
+      tasksCompleted: 47,
+      currentTask: 'Coordinating relief efforts in flood zones',
+      efficiency: 'High'
+    },
+    {
+      id: '2',
+      name: 'AI Bridge Builder Beta',
+      type: 'Education & Outreach',
+      status: 'active',
+      performance: 89,
+      tasksCompleted: 156,
+      currentTask: 'Creating AI literacy workshops',
+      efficiency: 'High'
+    }
+  ];
+
+  const mockTasks = [
+    {
+      id: '1',
+      title: 'Emergency Response Coordination',
+      description: 'Coordinate disaster relief efforts',
+      status: 'active',
+      priority: 'high',
+      assignedAgent: 'Humanitarian Coordinator Alpha'
+    },
+    {
+      id: '2',
+      title: 'AI Education Workshop',
+      description: 'Create educational content about AI',
+      status: 'pending',
+      priority: 'medium',
+      assignedAgent: 'AI Bridge Builder Beta'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="container mx-auto px-6 py-8">
@@ -231,7 +274,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="mission">
-            <MissionControlCenter />
+            <MissionControlCenter agents={mockAgents} tasks={mockTasks} />
           </TabsContent>
 
           <TabsContent value="creative">
