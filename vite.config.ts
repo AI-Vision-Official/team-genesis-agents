@@ -32,10 +32,13 @@ export default defineConfig(({ mode }) => ({
         assetFileNames: 'assets/[name]-[hash][extname]',
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
+        format: 'es'
       }
     },
     // Disable sourcemap for production build
     sourcemap: false,
-    minify: 'terser'
+    minify: 'terser',
+    // Ensure relative paths
+    cssCodeSplit: false
   }
 }));
