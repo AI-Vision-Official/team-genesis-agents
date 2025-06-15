@@ -1,15 +1,21 @@
 
 {
-  "appId": "com.teamgenesis.agents",
+  "appId": "com.teamgenesisagents.app",
   "productName": "Team Genesis Agents",
   "directories": {
     "output": "release",
     "buildResources": "public"
   },
   "files": [
-    "dist",
-    "electron",
-    "package.json"
+    "dist/**/*",
+    "electron/**/*",
+    {
+      "from": "node_modules",
+      "filter": ["**/*"]
+    }
+  ],
+  "asarUnpack": [
+    "dist/**/*"
   ],
   "extraResources": [
     {

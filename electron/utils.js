@@ -7,7 +7,7 @@ import { existsSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = join(__filename, '..');
 
-export const isDev = process.env.NODE_ENV === 'development';
+export const isDev = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 export function createWindow() {
   console.log('🚀 Creating Electron window...');
@@ -53,12 +53,14 @@ export function createWindow() {
       console.log('✅ Found dev HTML at:', htmlPath);
     }
   } else {
-    // Production: check extraResources first, then other locations
-    console.log('📦 Production mode - checking extraResources');
+    // Production: check multiple locations including unpacked files
+    console.log('📦 Production mode - checking for HTML files');
     
     const possiblePaths = [
-      // extraResources should put files here
+      // First try extraResources (should be the most reliable)
       join(process.resourcesPath, 'dist', 'index.html'),
+      // Then try asarUnpack location
+      join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.html'),
       // Fallback locations
       join(app.getAppPath(), 'dist', 'index.html'),
       join(__dirname, '../dist/index.html')
