@@ -44,19 +44,30 @@ export function createWindow() {
   // Always load from local files for offline capability
   console.log('📦 Loading from local files for offline capability...');
   
-  // In production, try multiple possible paths
-  const possiblePaths = [
-    // Standard electron-builder paths
-    join(process.resourcesPath || '', 'app.asar', 'dist', 'index.html'),
-    join(process.resourcesPath || '', 'app', 'dist', 'index.html'),
-    // Fallback paths
-    join(app.getAppPath(), 'dist', 'index.html'),
-    join(__dirname, '../dist/index.html')
-  ];
+  // Check if we're in a packaged app or development
+  const isPackaged = app.isPackaged;
+  
+  let possiblePaths = [];
+  
+  if (isPackaged) {
+    // In packaged app, look in resources folder
+    possiblePaths = [
+      join(process.resourcesPath, 'dist', 'index.html'),
+      join(process.resourcesPath, 'app.asar', 'dist', 'index.html'),
+      join(app.getAppPath(), 'dist', 'index.html')
+    ];
+  } else {
+    // In development, look in project folder
+    possiblePaths = [
+      join(__dirname, '../dist/index.html'),
+      join(process.cwd(), 'dist', 'index.html')
+    ];
+  }
 
   let htmlPath = null;
   
   console.log('=== ELECTRON DEBUG INFO ===');
+  console.log('isPackaged:', isPackaged);
   console.log('process.resourcesPath:', process.resourcesPath);
   console.log('app.getAppPath():', app.getAppPath());
   console.log('__dirname:', __dirname);
@@ -121,6 +132,7 @@ export function createWindow() {
           
           <div class="debug">
             <h3>Debug informatie:</h3>
+            <p><strong>Is Packaged:</strong> ${isPackaged}</p>
             <p><strong>App Path:</strong> ${app.getAppPath()}</p>
             <p><strong>Resources Path:</strong> ${process.resourcesPath || 'undefined'}</p>
             <p><strong>Current Directory:</strong> ${process.cwd()}</p>
@@ -139,6 +151,7 @@ export function createWindow() {
             <li>Herinstalleer de applicatie</li>
             <li>Controleer of alle bestanden correct zijn geïnstalleerd</li>
             <li>Start de applicatie als administrator</li>
+            <li>Contacteer support met bovenstaande debug informatie</li>
           </ul>
         </div>
       </body>

@@ -10,7 +10,7 @@
     "electron/**/*",
     "package.json"
   ],
-  "extraFiles": [
+  "extraResources": [
     {
       "from": "dist",
       "to": "dist"
