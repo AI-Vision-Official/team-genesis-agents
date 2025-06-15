@@ -34,15 +34,8 @@ export default defineConfig(({ mode }) => ({
         entryFileNames: 'assets/[name]-[hash].js',
       }
     },
-    // Force relative paths in HTML
-    cssCodeSplit: false,
+    // Disable sourcemap for production build
     sourcemap: false,
     minify: 'terser'
-  },
-  // Ensure all imports use relative paths
-  experimental: {
-    renderBuiltUrl(filename) {
-      return './' + filename;
-    }
   }
 }));
