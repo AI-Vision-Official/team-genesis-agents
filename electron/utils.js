@@ -1,3 +1,4 @@
+
 import { app, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -50,11 +51,12 @@ export function createWindow() {
   let possiblePaths = [];
   
   if (isPackaged) {
-    // In packaged app, look in resources folder
+    // In packaged app, the dist files should be in the app directory
     possiblePaths = [
-      join(process.resourcesPath, 'dist', 'index.html'),
-      join(process.resourcesPath, 'app.asar', 'dist', 'index.html'),
-      join(app.getAppPath(), 'dist', 'index.html')
+      join(__dirname, '../dist/index.html'),
+      join(app.getAppPath(), 'dist', 'index.html'),
+      join(process.cwd(), 'dist', 'index.html'),
+      join(process.resourcesPath, 'app', 'dist', 'index.html')
     ];
   } else {
     // In development, look in project folder
@@ -136,6 +138,7 @@ export function createWindow() {
             <p><strong>App Path:</strong> ${app.getAppPath()}</p>
             <p><strong>Resources Path:</strong> ${process.resourcesPath || 'undefined'}</p>
             <p><strong>Current Directory:</strong> ${process.cwd()}</p>
+            <p><strong>__dirname:</strong> ${__dirname}</p>
             
             <h4>Gezochte locaties:</h4>
             <ul class="paths">
@@ -148,9 +151,9 @@ export function createWindow() {
           
           <p><strong>Mogelijke oplossingen:</strong></p>
           <ul>
+            <li>Rebuild de applicatie met: npm run build && npm run electron-pack-win</li>
+            <li>Controleer of de dist/ folder correct wordt aangemaakt</li>
             <li>Herinstalleer de applicatie</li>
-            <li>Controleer of alle bestanden correct zijn geïnstalleerd</li>
-            <li>Start de applicatie als administrator</li>
             <li>Contacteer support met bovenstaande debug informatie</li>
           </ul>
         </div>

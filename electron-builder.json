@@ -10,12 +10,6 @@
     "electron/**/*",
     "package.json"
   ],
-  "extraResources": [
-    {
-      "from": "dist",
-      "to": "dist"
-    }
-  ],
   "win": {
     "target": "nsis",
     "icon": "public/icon.png",
