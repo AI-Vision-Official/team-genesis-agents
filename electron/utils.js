@@ -1,4 +1,3 @@
-
 import { app, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
@@ -43,8 +42,8 @@ export function createWindow() {
 
   // Load the app
   if (isDev) {
-    console.log('🔧 Development mode: loading from localhost');
-    mainWindow.loadURL('http://localhost:8080');
+    console.log('🔧 Development mode: loading from localhost:4000');
+    mainWindow.loadURL('http://localhost:4000');
   } else {
     console.log('📦 Production mode: looking for built files...');
     
@@ -214,7 +213,7 @@ export function createWindow() {
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
     
-    if (parsedUrl.origin !== 'http://localhost:8080' && !navigationUrl.startsWith('file://') && !navigationUrl.startsWith('data:')) {
+    if (parsedUrl.origin !== 'http://localhost:4000' && !navigationUrl.startsWith('file://') && !navigationUrl.startsWith('data:')) {
       event.preventDefault();
       console.log('🚫 Prevented navigation to:', navigationUrl);
     }
