@@ -25,5 +25,14 @@ export default defineConfig(({ mode }) => ({
     // Ensure assets are in the right place for Electron
     assetsDir: "assets",
     outDir: "dist",
+    // Force relative paths for all assets
+    rollupOptions: {
+      output: {
+        // Ensure all asset references are relative
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+      }
+    }
   }
 }));
