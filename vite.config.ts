@@ -33,6 +33,16 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
       }
+    },
+    // Force relative paths in HTML
+    cssCodeSplit: false,
+    sourcemap: false,
+    minify: 'terser'
+  },
+  // Ensure all imports use relative paths
+  experimental: {
+    renderBuiltUrl(filename) {
+      return './' + filename;
     }
   }
 }));
