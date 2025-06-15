@@ -29,10 +29,16 @@ export function createWindow() {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    // Use app.getAppPath() to get the correct path in production
-    const appPath = app.getAppPath();
+    // In production, the files are in the resources/app.asar or resources/app folder
+    const resourcesPath = process.resourcesPath;
+    const appPath = join(resourcesPath, 'app');
     const htmlPath = join(appPath, 'dist', 'index.html');
-    console.log('Production mode: loading from', htmlPath);
+    
+    console.log('Production mode paths:');
+    console.log('resourcesPath:', resourcesPath);
+    console.log('appPath:', appPath);
+    console.log('htmlPath:', htmlPath);
+    
     mainWindow.loadFile(htmlPath);
   }
 
@@ -45,6 +51,7 @@ export function createWindow() {
   // Add error handling
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     console.error('Failed to load:', errorDescription, 'URL:', validatedURL);
+    console.error('Error code:', errorCode);
   });
 
   // Prevent navigation to external URLs
