@@ -51,12 +51,17 @@ export function createWindow() {
   let possiblePaths = [];
   
   if (isPackaged) {
-    // In packaged app, the dist files should be in the app directory
+    // In packaged app, look for unpacked files first, then in asar
+    const appPath = app.getAppPath();
+    const resourcesPath = process.resourcesPath;
+    
     possiblePaths = [
-      join(__dirname, '../dist/index.html'),
-      join(app.getAppPath(), 'dist', 'index.html'),
-      join(process.cwd(), 'dist', 'index.html'),
-      join(process.resourcesPath, 'app', 'dist', 'index.html')
+      // Try unpacked files first (because of asarUnpack)
+      join(resourcesPath, 'app.asar.unpacked', 'dist', 'index.html'),
+      join(appPath, '..', 'app.asar.unpacked', 'dist', 'index.html'),
+      // Fallback to asar files
+      join(appPath, 'dist', 'index.html'),
+      join(resourcesPath, 'app', 'dist', 'index.html')
     ];
   } else {
     // In development, look in project folder
@@ -153,6 +158,7 @@ export function createWindow() {
           <ul>
             <li>Rebuild de applicatie met: npm run build && npm run electron-pack-win</li>
             <li>Controleer of de dist/ folder correct wordt aangemaakt</li>
+            <li>De dist bestanden moeten worden uitgepakt uit het app.asar archief</li>
             <li>Herinstalleer de applicatie</li>
             <li>Contacteer support met bovenstaande debug informatie</li>
           </ul>

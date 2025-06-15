@@ -8,7 +8,13 @@
   "files": [
     "dist/**/*",
     "electron/**/*",
-    "package.json"
+    "package.json",
+    "!node_modules/**/*",
+    "!src/**/*",
+    "!.git/**/*"
+  ],
+  "asarUnpack": [
+    "dist/**/*"
   ],
   "win": {
     "target": "nsis",
