@@ -6,6 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "./", // This ensures relative paths in the built files
   server: {
     host: "::",
     port: 8080,
@@ -20,4 +21,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Ensure assets are in the right place for Electron
+    assetsDir: "assets",
+    outDir: "dist",
+  }
 }));
