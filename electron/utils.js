@@ -29,13 +29,11 @@ export function createWindow() {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, the files are in the resources/app.asar or resources/app folder
-    const resourcesPath = process.resourcesPath;
-    const appPath = join(resourcesPath, 'app');
+    // In production, use app.getAppPath() which correctly points to the app directory
+    const appPath = app.getAppPath();
     const htmlPath = join(appPath, 'dist', 'index.html');
     
     console.log('Production mode paths:');
-    console.log('resourcesPath:', resourcesPath);
     console.log('appPath:', appPath);
     console.log('htmlPath:', htmlPath);
     
