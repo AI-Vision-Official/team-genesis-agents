@@ -20,7 +20,9 @@ export function createWindow() {
       webSecurity: true
     },
     icon: join(__dirname, '../dist/icon.png'),
-    show: false
+    show: true, // Show immediately instead of waiting
+    center: true, // Center the window on screen
+    autoHideMenuBar: false // Keep menu bar visible
   });
 
   // Load the app
@@ -29,41 +31,55 @@ export function createWindow() {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, check if we're in an asar package or unpacked
-    let htmlPath;
+    // In production, try multiple possible paths
+    const possiblePaths = [
+      // Standard electron-builder paths
+      join(process.resourcesPath || '', 'app.asar', 'dist', 'index.html'),
+      join(process.resourcesPath || '', 'app', 'dist', 'index.html'),
+      // Fallback paths
+      join(app.getAppPath(), 'dist', 'index.html'),
+      join(__dirname, '../dist/index.html')
+    ];
+
+    let htmlPath = null;
+    const fs = require('fs');
     
-    if (process.resourcesPath) {
-      // When packaged with electron-builder
-      htmlPath = join(process.resourcesPath, 'app.asar', 'dist', 'index.html');
-      
-      // If asar doesn't exist, try unpacked app structure
-      const fs = require('fs');
-      if (!fs.existsSync(htmlPath)) {
-        htmlPath = join(process.resourcesPath, 'app', 'dist', 'index.html');
+    for (const path of possiblePaths) {
+      console.log('Checking path:', path);
+      if (fs.existsSync(path)) {
+        htmlPath = path;
+        console.log('Found HTML at:', htmlPath);
+        break;
       }
-    } else {
-      // Fallback for development or other scenarios
-      const appPath = app.getAppPath();
-      htmlPath = join(appPath, 'dist', 'index.html');
     }
-    
-    console.log('Production mode paths:');
-    console.log('process.resourcesPath:', process.resourcesPath);
-    console.log('htmlPath:', htmlPath);
-    
-    mainWindow.loadFile(htmlPath);
+
+    if (htmlPath) {
+      mainWindow.loadFile(htmlPath);
+    } else {
+      console.error('Could not find index.html in any expected location');
+      // Show error page instead of failing silently
+      mainWindow.loadURL('data:text/html,<html><body><h1>Error: Could not load application</h1><p>HTML file not found</p></body></html>');
+    }
   }
 
-  // Show window when ready to prevent visual flash
+  // Force window to front
   mainWindow.once('ready-to-show', () => {
-    console.log('Window ready to show');
+    console.log('Window ready to show - forcing to front');
     mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setAlwaysOnTop(true);
+    setTimeout(() => {
+      mainWindow.setAlwaysOnTop(false);
+    }, 1000);
   });
 
   // Add error handling
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     console.error('Failed to load:', errorDescription, 'URL:', validatedURL);
     console.error('Error code:', errorCode);
+    // Show window even if load fails so user can see the error
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   // Prevent navigation to external URLs
