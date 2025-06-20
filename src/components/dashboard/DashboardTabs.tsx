@@ -136,14 +136,14 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <PersonalWorkstation />;
       case 'offline':
         return <OfflineCenter />;
+      case 'desktop':
+        return <DesktopWrapper />;
       case 'collaboration':
         return <AgentCollaborationHub />;
       case 'voice':
         return <VoiceCommandInterface />;
       case 'communication':
         return <CommunicationCenter agents={communicationAgents} />;
-      case 'desktop':
-        return <DesktopWrapper />;
       case 'analytics':
         return <AdvancedAnalyticsDashboard />;
       case 'designer':
