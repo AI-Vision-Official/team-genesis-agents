@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface DashboardNavigationProps {
@@ -9,6 +8,7 @@ interface DashboardNavigationProps {
 export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNavigationProps) => {
   const navigationTabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'workstation', label: 'My Workstation', icon: '🏠' },
     { id: 'health', label: 'System Health', icon: '💗' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'actions', label: 'Quick Actions', icon: '⚡' },
