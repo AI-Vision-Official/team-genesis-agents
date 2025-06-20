@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Settings } from 'lucide-react';
 import { CreateAgentDialog } from './CreateAgentDialog';
+import { SettingsDialog } from './SettingsDialog';
 
 export const DashboardHeader = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   return (
     <>
@@ -27,7 +29,10 @@ export const DashboardHeader = () => {
             <span className="hidden sm:inline">Create Agent</span>
             <span className="sm:hidden">Create</span>
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => setIsSettingsDialogOpen(true)}
+          >
             <Settings className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Settings</span>
           </Button>
@@ -37,6 +42,11 @@ export const DashboardHeader = () => {
       <CreateAgentDialog 
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+      />
+      
+      <SettingsDialog 
+        open={isSettingsDialogOpen}
+        onOpenChange={setIsSettingsDialogOpen}
       />
     </>
   );
