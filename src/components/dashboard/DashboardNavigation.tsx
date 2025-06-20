@@ -9,6 +9,7 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
   const navigationTabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'workstation', label: 'My Workstation', icon: '🏠' },
+    { id: 'offline', label: 'Offline Mode', icon: '📴' },
     { id: 'health', label: 'System Health', icon: '💗' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' },
     { id: 'actions', label: 'Quick Actions', icon: '⚡' },

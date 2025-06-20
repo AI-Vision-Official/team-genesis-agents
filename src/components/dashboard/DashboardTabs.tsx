@@ -1,6 +1,7 @@
 
 import { DashboardOverview } from './DashboardOverview';
 import { PersonalWorkstation } from '../workstation/PersonalWorkstation';
+import { OfflineCenter } from '../offline/OfflineCenter';
 import { SocialMediaCenter } from '../socialMedia/SocialMediaCenter';
 import { MissionControlCenter } from '../missionControl/MissionControlCenter';
 import { HumanitarianCenter } from '../humanitarian/HumanitarianCenter';
@@ -133,6 +134,8 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <DashboardOverview />;
       case 'workstation':
         return <PersonalWorkstation />;
+      case 'offline':
+        return <OfflineCenter />;
       case 'collaboration':
         return <AgentCollaborationHub />;
       case 'voice':
@@ -167,7 +170,7 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <MarketingAICenter />;
       case 'invention':
         return <InventionCenter />;
-      case 'integ | rations':
+      case 'integrations':
         return <IntegrationsCenter />;
       case 'ifttt':
         return <IFTTTCenter 
