@@ -1,4 +1,3 @@
-
 import { DashboardOverview } from './DashboardOverview';
 import { PersonalWorkstation } from '../workstation/PersonalWorkstation';
 import { OfflineCenter } from '../offline/OfflineCenter';
@@ -193,6 +192,10 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <SmartNotificationSystem />;
       case 'actions':
         return <QuickActionsPanel />;
+      case 'templates':
+        return <TemplateManager />;
+      case 'innovation':
+        return <InnovationCenter />;
       default:
         return <DashboardOverview />;
     }

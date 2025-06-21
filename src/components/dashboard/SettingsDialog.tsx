@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,10 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     displayName: 'Agent Commander',
     email: 'commander@agentcore.ai',
     timezone: 'UTC',
+    
+    // App Customization
+    customAppName: '',
+    useCustomAppName: false,
     
     // Notification settings
     emailNotifications: true,
@@ -112,6 +115,34 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                 onChange={(e) => updateSetting('email', e.target.value)}
               />
             </div>
+            
+            {/* Custom App Name Section */}
+            <div className="border-t pt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="useCustomAppName">Use Custom App Name</Label>
+                <Switch
+                  id="useCustomAppName"
+                  checked={settings.useCustomAppName}
+                  onCheckedChange={(checked) => updateSetting('useCustomAppName', checked)}
+                />
+              </div>
+              
+              {settings.useCustomAppName && (
+                <div className="space-y-2">
+                  <Label htmlFor="customAppName">Custom App Name</Label>
+                  <Input
+                    id="customAppName"
+                    value={settings.customAppName}
+                    onChange={(e) => updateSetting('customAppName', e.target.value)}
+                    placeholder="e.g., Dream Factory, Innovation Hub, Creative Command..."
+                  />
+                  <p className="text-sm text-gray-500">
+                    This will replace "AI Agent Command Center" throughout the interface
+                  </p>
+                </div>
+              )}
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
               <Select value={settings.timezone} onValueChange={(value) => updateSetting('timezone', value)}>

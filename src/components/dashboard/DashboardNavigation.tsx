@@ -29,6 +29,8 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'web', label: 'Web Development', icon: '🌐' },
     { id: 'education', label: 'Education', icon: '🎓' },
     { id: 'creative', label: 'Creative Studio', icon: '🎨' },
+    { id: 'templates', label: 'Template Toolkit', icon: '🧾' },
+    { id: 'innovation', label: 'Innovation Hub (Chris)', icon: '🔬' },
     { id: 'marketing', label: 'Marketing AI', icon: '📢' },
     { id: 'invention', label: 'Invention Hub', icon: '💡' },
     { id: 'integrations', label: 'Integrations', icon: '🔗' },
