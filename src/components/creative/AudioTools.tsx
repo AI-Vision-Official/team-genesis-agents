@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import {
   Mic, 
   Headphones, 
   Settings, 
-  Waveform, 
+  Activity, 
   Volume2, 
   Play, 
   Square, 
@@ -96,7 +95,7 @@ export const AudioTools = ({ agents, settings }: AudioToolsProps) => {
       id: 'streaming',
       title: 'Audio Streaming',
       description: 'Real-time audio processing pipeline',
-      icon: Waveform,
+      icon: Activity,
       color: 'bg-cyan-500',
       status: 'active',
       agents: 2

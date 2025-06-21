@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Waveform, Play, Square, Settings } from 'lucide-react';
+import { Activity, Play, Square, Settings } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
 interface AudioStreamingProps {
@@ -27,7 +27,7 @@ export const AudioStreaming = ({ settings }: AudioStreamingProps) => {
       <Card>
         <CardContent className="flex items-center justify-center h-96">
           <div className="text-center">
-            <Waveform className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium mb-2">Streaming Pipeline Coming Soon</h3>
             <p className="text-gray-600">Real-time audio processing and streaming</p>
             <div className="flex gap-2 mt-4 justify-center">
