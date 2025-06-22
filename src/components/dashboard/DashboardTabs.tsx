@@ -1,3 +1,4 @@
+
 import { DashboardOverview } from './DashboardOverview';
 import { PersonalWorkstation } from '../workstation/PersonalWorkstation';
 import { OfflineCenter } from '../offline/OfflineCenter';
@@ -27,6 +28,8 @@ import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashbo
 import { CustomAgentDesigner } from '../agents/CustomAgentDesigner';
 import { RealTimeMonitoring } from '../monitoring/RealTimeMonitoring';
 import { AIInsightsEngine } from '../insights/AIInsightsEngine';
+import { TemplateManager } from '../templates/TemplateManager';
+import { InnovationCenter } from '../innovation/InnovationCenter';
 import { mockSocialMediaAgents } from '@/data/mockSocialMediaData';
 import { mockHumanitarianProjects, mockCrisisAlerts } from '@/data/mockHumanitarianData';
 import { mockWebAgents, mockWebProjects } from '@/data/mockWebData';
