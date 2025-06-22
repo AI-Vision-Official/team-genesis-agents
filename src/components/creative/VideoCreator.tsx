@@ -1,3 +1,4 @@
+
 import { useState, useRef, createContext, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -181,6 +182,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         resolve(video.duration);
       };
       video.onerror = () => {
+        console.error('Error loading video metadata for:', url);
         resolve(0);
       };
       video.src = url;
@@ -207,6 +209,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
   };
 
   const formatDuration = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -247,6 +250,14 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     setSelectedVideo(video);
     setActiveTab(tab);
     toast.info(`Opening ${tab} with selected video...`);
+  };
+
+  const handleVideoPlay = (videoId: string) => {
+    setPlayingVideo(videoId);
+  };
+
+  const handleVideoPause = (videoId: string) => {
+    setPlayingVideo(null);
   };
 
   const videoModules = [
@@ -446,7 +457,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="video/*,.mp4,.mov,.webm"
+          accept="video/*,.mp4,.mov,.webm,.avi"
           multiple
           className="hidden"
           onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
@@ -497,18 +508,27 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                   <video
                     src={video.url}
                     className="w-full h-full object-cover"
-                    controls={playingVideo === video.id}
-                    poster=""
                     preload="metadata"
+                    controls={playingVideo === video.id}
+                    onPlay={() => handleVideoPlay(video.id)}
+                    onPause={() => handleVideoPause(video.id)}
+                    onError={(e) => {
+                      console.error('Video playback error:', e);
+                      toast.error(`Failed to play video: ${video.name}`);
+                    }}
                   />
                   {playingVideo !== video.id && (
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                       <Button
                         size="lg"
-                        className="rounded-full w-16 h-16 bg-black/50 hover:bg-black/70"
+                        className="rounded-full w-16 h-16 bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setPlayingVideo(video.id);
+                          const videoElement = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
+                          if (videoElement) {
+                            videoElement.play();
+                            handleVideoPlay(video.id);
+                          }
                         }}
                       >
                         <Play className="w-8 h-8 text-white" />
@@ -532,12 +552,13 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="h-6 w-6 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteVideo(video.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
@@ -547,7 +568,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                     <span>{formatFileSize(video.size)}</span>
                     {video.duration && <span>{formatDuration(video.duration)}</span>}
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                     <Button 
                       size="sm" 
                       className="flex-1"
@@ -576,7 +597,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                   </div>
                   
                   {/* Quick action buttons for other tabs */}
-                  <div className="grid grid-cols-3 gap-1 mt-2">
+                  <div className="grid grid-cols-3 gap-1">
                     <Button 
                       size="sm" 
                       variant="ghost" 

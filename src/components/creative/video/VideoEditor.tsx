@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import {
   SkipForward,
   Repeat
 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { AccessibilityOptions } from '@/types/creative';
 
 interface UploadedVideo {
@@ -48,37 +48,55 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
   const [selectedLayer, setSelectedLayer] = useState('video');
   const [playbackSpeed, setPlaybackSpeed] = useState([1]);
   const [volume, setVolume] = useState([75]);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (selectedVideo && videoRef.current) {
+      console.log('Loading video:', selectedVideo.name, selectedVideo.url);
       videoRef.current.load();
       setCurrentTime(0);
       setIsPlaying(false);
+      setIsVideoReady(false);
     }
   }, [selectedVideo]);
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration || 0);
+      setIsVideoReady(true);
+      console.log('Video metadata loaded, duration:', videoRef.current.duration);
+    }
+  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
-      setDuration(videoRef.current.duration || 0);
     }
   };
 
   const handlePlayPause = () => {
-    if (videoRef.current) {
+    if (videoRef.current && isVideoReady) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        const playPromise = videoRef.current.play();
+        if (playPromise) {
+          playPromise.catch(error => {
+            console.error('Video play error:', error);
+            toast.error('Failed to play video. Check if the file is corrupted or in an unsupported format.');
+          });
+        }
       }
       setIsPlaying(!isPlaying);
+    } else {
+      toast.error('Video not ready for playback');
     }
   };
 
   const handleSeek = (value: number[]) => {
     const time = value[0];
-    if (videoRef.current) {
+    if (videoRef.current && isVideoReady) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
     }
@@ -86,7 +104,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
 
   const handleSpeedChange = (value: number[]) => {
     setPlaybackSpeed(value);
-    if (videoRef.current) {
+    if (videoRef.current && isVideoReady) {
       videoRef.current.playbackRate = value[0];
     }
   };
@@ -96,6 +114,16 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
     if (videoRef.current) {
       videoRef.current.volume = value[0] / 100;
     }
+  };
+
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error('Video error:', e);
+    const error = videoRef.current?.error;
+    if (error) {
+      console.error('Video error code:', error.code, 'message:', error.message);
+      toast.error(`Video playback error: ${error.message || 'Unknown error'}`);
+    }
+    setIsVideoReady(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -131,7 +159,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
         <div className="flex gap-2">
           <Badge variant="outline">FFmpeg</Badge>
           <Badge variant="outline">OpenCV</Badge>
-          <Badge variant="outline">WebAssemb ly</Badge>
+          <Badge variant="outline">WebAssembly</Badge>
         </div>
       </div>
 
@@ -151,74 +179,95 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
         <CardContent>
           <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative">
             {selectedVideo ? (
-              <video
-                ref={videoRef}
-                src={selectedVideo.url}
-                className="w-full h-full object-contain rounded-lg"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleTimeUpdate}
-                preload="metadata"
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  src={selectedVideo.url}
+                  className="w-full h-full object-contain rounded-lg"
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onError={handleVideoError}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  preload="metadata"
+                  crossOrigin="anonymous"
+                />
+                
+                {/* Video Controls Overlay */}
+                {isVideoReady && (
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex items-center gap-4 bg-black/70 rounded-lg px-4 py-2 backdrop-blur-sm">
+                      <Button
+                        size="sm"
+                        onClick={handlePlayPause}
+                        className="bg-white/20 hover:bg-white/30"
+                      >
+                        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        onClick={() => handleSeek([Math.max(0, currentTime - 10)])}
+                        className="bg-white/20 hover:bg-white/30"
+                        disabled={!isVideoReady}
+                      >
+                        <SkipBack className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        onClick={() => handleSeek([Math.min(duration, currentTime + 10)])}
+                        className="bg-white/20 hover:bg-white/30"
+                        disabled={!isVideoReady}
+                      >
+                        <SkipForward className="w-4 h-4" />
+                      </Button>
+                      
+                      <div className="flex-1">
+                        <Slider
+                          value={[currentTime]}
+                          max={duration || 100}
+                          step={0.1}
+                          onValueChange={handleSeek}
+                          className="h-2"
+                          disabled={!isVideoReady}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Volume2 className="w-4 h-4 text-white" />
+                        <Slider
+                          value={volume}
+                          max={100}
+                          step={1}
+                          onValueChange={handleVolumeChange}
+                          className="w-20 h-2"
+                          disabled={!isVideoReady}
+                        />
+                      </div>
+                      
+                      <span className="text-white text-sm whitespace-nowrap">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Loading indicator */}
+                {!isVideoReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-white text-center">
+                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      <p>Loading video...</p>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-white text-center">
                 <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
                 <p className="text-lg">Select a video to start editing</p>
                 <p className="text-sm opacity-75">Upload from the Overview tab</p>
-              </div>
-            )}
-            
-            {selectedVideo && (
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="flex items-center gap-4 bg-black/50 rounded-lg px-4 py-2">
-                  <Button
-                    size="sm"
-                    onClick={handlePlayPause}
-                    className="bg-white/20 hover:bg-white/30"
-                  >
-                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    onClick={() => handleSeek([Math.max(0, currentTime - 10)])}
-                    className="bg-white/20 hover:bg-white/30"
-                  >
-                    <SkipBack className="w-4 h-4" />
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    onClick={() => handleSeek([Math.min(duration, currentTime + 10)])}
-                    className="bg-white/20 hover:bg-white/30"
-                  >
-                    <SkipForward className="w-4 h-4" />
-                  </Button>
-                  
-                  <div className="flex-1">
-                    <Slider
-                      value={[currentTime]}
-                      max={duration || 100}
-                      step={0.1}
-                      onValueChange={handleSeek}
-                      className="h-2"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-white" />
-                    <Slider
-                      value={volume}
-                      max={100}
-                      step={1}
-                      onValueChange={handleVolumeChange}
-                      className="w-20 h-2"
-                    />
-                  </div>
-                  
-                  <span className="text-white text-sm whitespace-nowrap">
-                    {formatTime(currentTime)} / {formatTime(duration)}
-                  </span>
-                </div>
               </div>
             )}
           </div>
@@ -255,7 +304,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                   className={`h-full rounded ${layer.color} opacity-60`}
                   style={{ width: duration > 0 ? `${Math.min(100, (layer.duration / duration) * 100)}%` : '0%' }}
                 />
-                {selectedVideo && layer.id === 'video' && (
+                {selectedVideo && layer.id === 'video' && isVideoReady && (
                   <div 
                     className="absolute top-0 w-1 h-full bg-red-500"
                     style={{ left: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
@@ -278,7 +327,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant="outline" disabled={!selectedVideo}>
+              <Button size="sm" variant="outline" disabled={!selectedVideo || !isVideoReady}>
                 <Scissors className="w-4 h-4 mr-2" />
                 Cut
               </Button>
@@ -303,7 +352,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                 min={0.25} 
                 step={0.25} 
                 onValueChange={handleSpeedChange}
-                disabled={!selectedVideo}
+                disabled={!selectedVideo || !isVideoReady}
               />
             </div>
           </CardContent>
@@ -324,14 +373,14 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                 max={100} 
                 min={0} 
                 onValueChange={handleVolumeChange}
-                disabled={!selectedVideo}
+                disabled={!selectedVideo || !isVideoReady}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Audio Track</label>
-              <Slider defaultValue={[80]} max={100} min={0} disabled={!selectedVideo} />
+              <Slider defaultValue={[80]} max={100} min={0} disabled={!selectedVideo || !isVideoReady} />
             </div>
-            <Button size="sm" variant="outline" className="w-full" disabled={!selectedVideo}>
+            <Button size="sm" variant="outline" className="w-full" disabled={!selectedVideo || !isVideoReady}>
               <Settings className="w-4 h-4 mr-2" />
               Advanced Audio
             </Button>
@@ -351,7 +400,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium">Resolution</label>
-              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo}>
+              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo || !isVideoReady}>
                 <option>1920x1080 (1080p)</option>
                 <option>1280x720 (720p)</option>
                 <option>3840x2160 (4K)</option>
@@ -359,7 +408,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
             </div>
             <div>
               <label className="text-sm font-medium">Format</label>
-              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo}>
+              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo || !isVideoReady}>
                 <option>MP4 (H.264)</option>
                 <option>WebM (VP9)</option>
                 <option>MOV (ProRes)</option>
@@ -367,20 +416,25 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
             </div>
             <div>
               <label className="text-sm font-medium">Quality</label>
-              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo}>
+              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo || !isVideoReady}>
                 <option>High (8 Mbps)</option>
                 <option>Medium (4 Mbps)</option>
                 <option>Low (2 Mbps)</option>
               </select>
             </div>
           </div>
-          <Button className="w-full mt-4" disabled={!selectedVideo}>
+          <Button className="w-full mt-4" disabled={!selectedVideo || !isVideoReady}>
             <Download className="w-4 h-4 mr-2" />
             Export Video
           </Button>
           {!selectedVideo && (
             <p className="text-sm text-gray-500 text-center mt-2">
               Select a video from the Overview tab to enable export
+            </p>
+          )}
+          {selectedVideo && !isVideoReady && (
+            <p className="text-sm text-amber-600 text-center mt-2">
+              Video is loading... Please wait
             </p>
           )}
         </CardContent>
