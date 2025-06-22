@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, createContext, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,8 @@ import {
   Wifi,
   WifiOff,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Volume2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,11 +71,25 @@ interface UploadedVideo {
   localPath?: string;
 }
 
+// Context for sharing videos across tabs
+const VideoContext = createContext<{
+  videos: UploadedVideo[];
+  selectedVideo: UploadedVideo | null;
+  setSelectedVideo: (video: UploadedVideo | null) => void;
+}>({
+  videos: [],
+  selectedVideo: null,
+  setSelectedVideo: () => {}
+});
+
+export const useVideoContext = () => useContext(VideoContext);
+
 export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isProcessing, setIsProcessing] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<UploadedVideo | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [useLocalStorage, setUseLocalStorage] = useState(true);
@@ -89,7 +104,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     );
 
     if (videoFiles.length === 0) {
-      toast.error('Upload geldige videobestanden (.mp4, .mov, .webm)');
+      toast.error('Please upload valid video files (.mp4, .mov, .webm)');
       return;
     }
 
@@ -112,7 +127,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           storageType = 'local';
           
           if (file.size > maxSupabaseSize) {
-            toast.info(`Groot bestand (${formatFileSize(file.size)}) wordt lokaal opgeslagen`);
+            toast.info(`Large file (${formatFileSize(file.size)}) stored locally`);
           }
         } else {
           // Upload to Supabase for smaller files
@@ -132,26 +147,44 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           storageType = 'supabase';
         }
 
+        // Get video duration
+        const duration = await getVideoDuration(videoUrl);
+
         const newVideo: UploadedVideo = {
           id: videoId,
           file,
           url: videoUrl,
           name: file.name,
           size: file.size,
+          duration,
           uploaded: true,
           storageType,
           localPath: storageType === 'local' ? videoUrl : undefined
         };
 
         setUploadedVideos(prev => [...prev, newVideo]);
-        toast.success(`Video geüpload: ${file.name} (${storageType === 'local' ? 'lokaal' : 'cloud'})`);
+        toast.success(`Video uploaded: ${file.name} (${storageType === 'local' ? 'local' : 'cloud'})`);
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error(`Upload mislukt: ${file.name}`);
+        toast.error(`Upload failed: ${file.name}`);
       }
     }
 
     setIsUploading(false);
+  };
+
+  const getVideoDuration = (url: string): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        resolve(video.duration);
+      };
+      video.onerror = () => {
+        resolve(0);
+      };
+      video.src = url;
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -173,6 +206,12 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const deleteVideo = async (videoId: string) => {
     const video = uploadedVideos.find(v => v.id === videoId);
     if (video) {
@@ -187,17 +226,27 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         }
         
         setUploadedVideos(prev => prev.filter(v => v.id !== videoId));
-        toast.success('Video verwijderd');
+        if (selectedVideo?.id === videoId) {
+          setSelectedVideo(null);
+        }
+        toast.success('Video deleted');
       } catch (error) {
         console.error('Delete error:', error);
-        toast.error('Verwijderen mislukt');
+        toast.error('Failed to delete video');
       }
     }
   };
 
-  const startEditing = (videoId: string) => {
+  const startEditing = (video: UploadedVideo) => {
+    setSelectedVideo(video);
     setActiveTab('editor');
-    toast.info('Video-editor wordt geopend...');
+    toast.info('Opening video editor...');
+  };
+
+  const selectVideoForProcessing = (video: UploadedVideo, tab: string) => {
+    setSelectedVideo(video);
+    setActiveTab(tab);
+    toast.info(`Opening ${tab} with selected video...`);
   };
 
   const videoModules = [
@@ -280,17 +329,17 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="w-5 h-5" />
-          Opslag Instellingen
+          Storage Settings
         </CardTitle>
         <CardDescription>
-          Kies hoe je video's wilt opslaan en verwerken
+          Choose how to store and process your videos
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HardDrive className="w-4 h-4" />
-            <Label htmlFor="local-storage">Lokale Opslag (Grote bestanden)</Label>
+            <Label htmlFor="local-storage">Local Storage (Large files)</Label>
           </div>
           <Switch
             id="local-storage"
@@ -300,15 +349,15 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         </div>
         <p className="text-sm text-gray-600">
           {useLocalStorage 
-            ? "Video's worden lokaal op je computer opgeslagen en verwerkt" 
-            : "Kleine video's (<50MB) worden in de cloud opgeslagen"
+            ? "Videos are stored locally on your computer and processed offline" 
+            : "Small videos (<50MB) are stored in the cloud"
           }
         </p>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <WifiOff className="w-4 h-4" />
-            <Label htmlFor="offline-mode">Offline Modus</Label>
+            <Label htmlFor="offline-mode">Offline Mode</Label>
           </div>
           <Switch
             id="offline-mode"
@@ -318,8 +367,8 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         </div>
         <p className="text-sm text-gray-600">
           {offlineMode 
-            ? "Alle functies werken volledig offline met lokale AI-modellen" 
-            : "Online functies beschikbaar voor cloud-processing"
+            ? "All features work completely offline with local AI models" 
+            : "Online features available for cloud processing"
           }
         </p>
 
@@ -328,12 +377,12 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
             {useLocalStorage ? (
               <>
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                <span>Geen bestandsgrootte limiet</span>
+                <span>No file size limit</span>
               </>
             ) : (
               <>
                 <AlertCircle className="w-4 h-4 text-amber-600" />
-                <span>Max 50MB per bestand</span>
+                <span>Max 50MB per file</span>
               </>
             )}
           </div>
@@ -341,12 +390,12 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
             {offlineMode ? (
               <>
                 <WifiOff className="w-4 h-4 text-blue-600" />
-                <span>Volledig offline</span>
+                <span>Fully offline</span>
               </>
             ) : (
               <>
                 <Wifi className="w-4 h-4 text-green-600" />
-                <span>Online functies actief</span>
+                <span>Online features active</span>
               </>
             )}
           </div>
@@ -364,12 +413,12 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           {useLocalStorage && (
             <Badge variant="outline" className="ml-2">
               <HardDrive className="w-3 h-3 mr-1" />
-              Lokaal
+              Local
             </Badge>
           )}
         </CardTitle>
         <CardDescription>
-          Upload je video's (.mp4, .mov, .webm) om te beginnen met bewerken
+          Upload your videos (.mp4, .mov, .webm) to start editing
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -381,15 +430,15 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-lg mb-2">Sleep video's hierheen</p>
-          <p className="text-gray-500 mb-4">of klik om bestanden te kiezen</p>
+          <p className="text-lg mb-2">Drag & drop videos here</p>
+          <p className="text-gray-500 mb-4">or click to browse files</p>
           <Button>
             <Upload className="w-4 h-4 mr-2" />
-            Kies Video's
+            Choose Videos
           </Button>
           {useLocalStorage && (
             <p className="text-xs text-green-600 mt-2">
-              ✓ Geen bestandsgrootte limiet - werkt volledig lokaal
+              ✓ No file size limit - works completely offline
             </p>
           )}
         </div>
@@ -407,7 +456,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           <div className="mt-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span>Video's uploaden...</span>
+              <span>Uploading videos...</span>
             </div>
           </div>
         )}
@@ -420,32 +469,47 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Video className="w-5 h-5" />
-          Video Bibliotheek ({uploadedVideos.length})
+          Video Library ({uploadedVideos.length})
+          {selectedVideo && (
+            <Badge variant="secondary" className="ml-2">
+              {selectedVideo.name} selected
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {uploadedVideos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Nog geen video's geüpload</p>
+            <p>No videos uploaded yet</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {uploadedVideos.map((video) => (
-              <Card key={video.id} className="overflow-hidden">
+              <Card 
+                key={video.id} 
+                className={`overflow-hidden cursor-pointer transition-all ${
+                  selectedVideo?.id === video.id ? 'ring-2 ring-blue-500' : ''
+                }`}
+                onClick={() => setSelectedVideo(video)}
+              >
                 <div className="aspect-video bg-gray-900 relative">
                   <video
                     src={video.url}
                     className="w-full h-full object-cover"
                     controls={playingVideo === video.id}
                     poster=""
+                    preload="metadata"
                   />
                   {playingVideo !== video.id && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Button
                         size="lg"
                         className="rounded-full w-16 h-16 bg-black/50 hover:bg-black/70"
-                        onClick={() => setPlayingVideo(video.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPlayingVideo(video.id);
+                        }}
                       >
                         <Play className="w-8 h-8 text-white" />
                       </Button>
@@ -456,7 +520,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                       {video.storageType === 'local' ? (
                         <>
                           <HardDrive className="w-3 h-3 mr-1" />
-                          Lokaal
+                          Local
                         </>
                       ) : (
                         <>
@@ -468,7 +532,10 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteVideo(video.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteVideo(video.id);
+                      }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -476,18 +543,75 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                 </div>
                 <CardContent className="p-4">
                   <h4 className="font-medium truncate">{video.name}</h4>
-                  <p className="text-sm text-gray-500">{formatFileSize(video.size)}</p>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex justify-between text-sm text-gray-500 mb-3">
+                    <span>{formatFileSize(video.size)}</span>
+                    {video.duration && <span>{formatDuration(video.duration)}</span>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
                     <Button 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => startEditing(video.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditing(video);
+                      }}
                     >
                       <Scissors className="w-4 h-4 mr-2" />
-                      Bewerken
+                      Edit
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Create download link
+                        const a = document.createElement('a');
+                        a.href = video.url;
+                        a.download = video.name;
+                        a.click();
+                      }}
+                    >
                       <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Quick action buttons for other tabs */}
+                  <div className="grid grid-cols-3 gap-1 mt-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectVideoForProcessing(video, 'ai-processing');
+                      }}
+                    >
+                      <Brain className="w-3 h-3 mr-1" />
+                      AI
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectVideoForProcessing(video, 'fractals');
+                      }}
+                    >
+                      <Zap className="w-3 h-3 mr-1" />
+                      FX
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectVideoForProcessing(video, 'social-publisher');
+                      }}
+                    >
+                      <Share2 className="w-3 h-3 mr-1" />
+                      Share
                     </Button>
                   </div>
                 </CardContent>
@@ -499,128 +623,90 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     </Card>
   );
 
-  const renderOverview = () => (
-    <div className="space-y-6">
-      {renderStorageSettings()}
-      {renderUploadSection()}
-      {renderVideoLibrary()}
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600">Active Projects</p>
-                <p className="text-2xl font-bold text-blue-700">12</p>
-              </div>
-              <Video className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-r from-green-50 to-green-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600">Video Agents</p>
-                <p className="text-2xl font-bold text-green-700">{agents.length}</p>
-              </div>
-              <Brain className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600">Platforms</p>
-                <p className="text-2xl font-bold text-purple-700">8</p>
-              </div>
-              <Globe className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  const contextValue = {
+    videos: uploadedVideos,
+    selectedVideo,
+    setSelectedVideo
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className={`text-2xl font-bold ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-            🎬 Professional Video Toolkit
-          </h2>
-          <p className={`text-gray-600 mt-1 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-            AI-powered video creation, editing, and publishing platform
-          </p>
+    <VideoContext.Provider value={contextValue}>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className={`text-2xl font-bold ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
+              🎬 Professional Video Toolkit
+            </h2>
+            <p className={`text-gray-600 mt-1 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
+              AI-powered video creation, editing, and publishing platform
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="bg-green-50 text-green-700">
+              <Shield className="w-3 h-3 mr-1" />
+              Open Source
+            </Badge>
+            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+              <Heart className="w-3 h-3 mr-1" />
+              Humanitarian
+            </Badge>
+            <Badge variant="outline" className="bg-purple-50 text-purple-700">
+              <Sparkles className="w-3 h-3 mr-1" />
+              AI-Enhanced
+            </Badge>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="bg-green-50 text-green-700">
-            <Shield className="w-3 h-3 mr-1" />
-            Open Source
-          </Badge>
-          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-            <Heart className="w-3 h-3 mr-1" />
-            Humanitarian
-          </Badge>
-          <Badge variant="outline" className="bg-purple-50 text-purple-700">
-            <Sparkles className="w-3 h-3 mr-1" />
-            AI-Enhanced
-          </Badge>
-        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="logo-removal">Logo Fix</TabsTrigger>
+            <TabsTrigger value="fractals">Fractals</TabsTrigger>
+            <TabsTrigger value="audio-reactive">Audio FX</TabsTrigger>
+            <TabsTrigger value="ai-processing">AI Tools</TabsTrigger>
+            <TabsTrigger value="social-publisher">Publish</TabsTrigger>
+            <TabsTrigger value="voice-commands">Voice</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
+            {renderOverview()}
+          </TabsContent>
+
+          <TabsContent value="editor">
+            <VideoEditor settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="logo-removal">
+            <LogoRemovalTool settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="fractals">
+            <FractalEffects settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="audio-reactive">
+            <AudioReactiveEffects settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="ai-processing">
+            <AIProcessing settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="social-publisher">
+            <SocialMediaPublisher settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="voice-commands">
+            <VoiceCommandsVideo settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+
+          <TabsContent value="projects">
+            <ProjectManager settings={settings} selectedVideo={selectedVideo} />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="editor">Editor</TabsTrigger>
-          <TabsTrigger value="logo-removal">Logo Fix</TabsTrigger>
-          <TabsTrigger value="fractals">Fractals</TabsTrigger>
-          <TabsTrigger value="audio-reactive">Audio FX</TabsTrigger>
-          <TabsTrigger value="ai-processing">AI Tools</TabsTrigger>
-          <TabsTrigger value="social-publisher">Publish</TabsTrigger>
-          <TabsTrigger value="voice-commands">Voice</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          {renderOverview()}
-        </TabsContent>
-
-        <TabsContent value="editor">
-          <VideoEditor settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="logo-removal">
-          <LogoRemovalTool settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="fractals">
-          <FractalEffects settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="audio-reactive">
-          <AudioReactiveEffects settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="ai-processing">
-          <AIProcessing settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="social-publisher">
-          <SocialMediaPublisher settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="voice-commands">
-          <VoiceCommandsVideo settings={settings} />
-        </TabsContent>
-
-        <TabsContent value="projects">
-          <ProjectManager settings={settings} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </VideoContext.Provider>
   );
 };
