@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
   Activity, 
   Volume2, 
   Play, 
+  Pause,
   Square, 
   Download,
   Upload,
@@ -23,8 +24,12 @@ import {
   Sliders,
   FileAudio,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Trash2,
+  BarChart3
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { VoiceCloning } from './audio/VoiceCloning';
 import { NoiseReduction } from './audio/NoiseReduction';
 import { TextToSpeech } from './audio/TextToSpeech';
@@ -40,10 +45,145 @@ interface AudioToolsProps {
   settings: AccessibilityOptions;
 }
 
+interface UploadedAudio {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+}
+
 export const AudioTools = ({ agents, settings }: AudioToolsProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [uploadedAudios, setUploadedAudios] = useState<UploadedAudio[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState<{ [key: string]: boolean }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
+
+  const handleFileUpload = async (files: FileList) => {
+    const audioFiles = Array.from(files).filter(file => 
+      file.type.startsWith('audio/') || 
+      ['.mp3', '.wav', '.ogg', '.m4a', '.flac'].some(ext => file.name.toLowerCase().endsWith(ext))
+    );
+
+    if (audioFiles.length === 0) {
+      toast.error('Please upload valid audio files (.mp3, .wav, .ogg)');
+      return;
+    }
+
+    setIsUploading(true);
+
+    for (const file of audioFiles) {
+      try {
+        const audioId = `audio-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const fileName = `audio/${audioId}-${file.name}`;
+        
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('media-files')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('media-files')
+          .getPublicUrl(fileName);
+
+        const newAudio: UploadedAudio = {
+          id: audioId,
+          file,
+          url: publicUrl,
+          name: file.name,
+          size: file.size,
+          uploaded: true
+        };
+
+        setUploadedAudios(prev => [...prev, newAudio]);
+        toast.success(`Audio uploaded: ${file.name}`);
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    setIsUploading(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) {
+      handleFileUpload(e.dataTransfer.files);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const deleteAudio = async (audioId: string) => {
+    const audio = uploadedAudios.find(a => a.id === audioId);
+    if (audio) {
+      try {
+        // Delete from Supabase Storage
+        const fileName = `audio/${audioId}-${audio.name}`;
+        await supabase.storage.from('media-files').remove([fileName]);
+        
+        setUploadedAudios(prev => prev.filter(a => a.id !== audioId));
+        toast.success('Audio deleted');
+      } catch (error) {
+        console.error('Delete error:', error);
+        toast.error('Failed to delete audio');
+      }
+    }
+  };
+
+  const togglePlayback = (audioId: string) => {
+    const audioElement = audioRefs.current[audioId];
+    if (!audioElement) return;
+
+    if (isPlaying[audioId]) {
+      audioElement.pause();
+      setIsPlaying(prev => ({ ...prev, [audioId]: false }));
+    } else {
+      // Pause all other audio
+      Object.keys(isPlaying).forEach(id => {
+        if (id !== audioId && isPlaying[id]) {
+          audioRefs.current[id]?.pause();
+          setIsPlaying(prev => ({ ...prev, [id]: false }));
+        }
+      });
+      
+      audioElement.play();
+      setIsPlaying(prev => ({ ...prev, [audioId]: true }));
+    }
+  };
+
+  const startProcessing = (audioId: string) => {
+    setActiveTab('voice-cloning');
+    toast.info('Opening audio processor...');
+  };
 
   const audioModules = [
     {
@@ -120,8 +260,167 @@ export const AudioTools = ({ agents, settings }: AudioToolsProps) => {
     }
   ];
 
+  const renderUploadSection = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Upload className="w-5 h-5" />
+          Audio Upload
+        </CardTitle>
+        <CardDescription>
+          Upload your audio files (.mp3, .wav, .ogg) to start processing
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div
+          ref={dropZoneRef}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+          <p className="text-lg mb-2">Drag & drop audio files here</p>
+          <p className="text-gray-500 mb-4">or click to browse files</p>
+          <Button>
+            <Upload className="w-4 h-4 mr-2" />
+            Choose Audio Files
+          </Button>
+        </div>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*,.mp3,.wav,.ogg,.m4a"
+          multiple
+          className="hidden"
+          onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+        />
+
+        {isUploading && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span>Uploading audio files...</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderAudioLibrary = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileAudio className="w-5 h-5" />
+          Audio Library ({uploadedAudios.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {uploadedAudios.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <FileAudio className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No audio files uploaded yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {uploadedAudios.map((audio) => (
+              <Card key={audio.id} className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                      <Music className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{audio.name}</h4>
+                    <p className="text-sm text-gray-500">
+                      {formatFileSize(audio.size)}
+                      {audio.duration && ` • ${formatDuration(audio.duration)}`}
+                    </p>
+                    
+                    {/* Waveform visualization placeholder */}
+                    <div className="mt-2 h-8 bg-gray-100 rounded flex items-center px-2">
+                      <div className="flex items-end gap-1 h-4">
+                        {Array.from({ length: 20 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="bg-blue-400 rounded-sm"
+                            style={{
+                              width: '2px',
+                              height: `${Math.random() * 100}%`,
+                              minHeight: '2px'
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => togglePlayback(audio.id)}
+                    >
+                      {isPlaying[audio.id] ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      onClick={() => startProcessing(audio.id)}
+                    >
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Process
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteAudio(audio.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Hidden audio element for playback */}
+                <audio
+                  ref={(el) => {
+                    if (el) audioRefs.current[audio.id] = el;
+                  }}
+                  src={audio.url}
+                  onEnded={() => setIsPlaying(prev => ({ ...prev, [audio.id]: false }))}
+                  onLoadedMetadata={(e) => {
+                    const target = e.target as HTMLAudioElement;
+                    setUploadedAudios(prev => 
+                      prev.map(a => 
+                        a.id === audio.id 
+                          ? { ...a, duration: target.duration }
+                          : a
+                      )
+                    );
+                  }}
+                />
+              </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const renderOverview = () => (
     <div className="space-y-6">
+      {renderUploadSection()}
+      {renderAudioLibrary()}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
           <CardContent className="p-6">

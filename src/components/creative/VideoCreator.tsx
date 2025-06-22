@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import {
   Video, 
   Upload, 
   Play, 
+  Pause,
   Square, 
   Scissors, 
   Layers,
@@ -31,8 +31,11 @@ import {
   Music,
   Target,
   Maximize,
-  RotateCcw
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { VideoEditor } from './video/VideoEditor';
 import { LogoRemovalTool } from './video/LogoRemovalTool';
 import { FractalEffects } from './video/FractalEffects';
@@ -48,10 +51,116 @@ interface VideoCreatorProps {
   settings: AccessibilityOptions;
 }
 
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+}
+
 export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isProcessing, setIsProcessing] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
+  const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  const handleFileUpload = async (files: FileList) => {
+    const videoFiles = Array.from(files).filter(file => 
+      file.type.startsWith('video/') || 
+      ['.mp4', '.mov', '.webm', '.avi'].some(ext => file.name.toLowerCase().endsWith(ext))
+    );
+
+    if (videoFiles.length === 0) {
+      toast.error('Please upload valid video files (.mp4, .mov, .webm)');
+      return;
+    }
+
+    setIsUploading(true);
+
+    for (const file of videoFiles) {
+      try {
+        const videoId = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const fileName = `videos/${videoId}-${file.name}`;
+        
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('media-files')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('media-files')
+          .getPublicUrl(fileName);
+
+        const newVideo: UploadedVideo = {
+          id: videoId,
+          file,
+          url: publicUrl,
+          name: file.name,
+          size: file.size,
+          uploaded: true
+        };
+
+        setUploadedVideos(prev => [...prev, newVideo]);
+        toast.success(`Video uploaded: ${file.name}`);
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+
+    setIsUploading(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) {
+      handleFileUpload(e.dataTransfer.files);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const deleteVideo = async (videoId: string) => {
+    const video = uploadedVideos.find(v => v.id === videoId);
+    if (video) {
+      try {
+        // Delete from Supabase Storage
+        const fileName = `videos/${videoId}-${video.name}`;
+        await supabase.storage.from('media-files').remove([fileName]);
+        
+        setUploadedVideos(prev => prev.filter(v => v.id !== videoId));
+        toast.success('Video deleted');
+      } catch (error) {
+        console.error('Delete error:', error);
+        toast.error('Failed to delete video');
+      }
+    }
+  };
+
+  const startEditing = (videoId: string) => {
+    setActiveTab('editor');
+    toast.info('Opening video editor...');
+  };
 
   const videoModules = [
     {
@@ -74,7 +183,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     },
     {
       id: 'fractals',
-      title: 'Fractal Effects',
+      title: 'Fractals Effects',
       description: 'Mandelbrot/Julia sets with stable zoom',
       icon: Zap,
       color: 'bg-purple-500',
@@ -128,8 +237,131 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     }
   ];
 
+  const renderUploadSection = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Upload className="w-5 h-5" />
+          Video Upload
+        </CardTitle>
+        <CardDescription>
+          Upload your videos (.mp4, .mov, .webm) to start editing
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div
+          ref={dropZoneRef}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+          <p className="text-lg mb-2">Drag & drop videos here</p>
+          <p className="text-gray-500 mb-4">or click to browse files</p>
+          <Button>
+            <Upload className="w-4 h-4 mr-2" />
+            Choose Videos
+          </Button>
+        </div>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/*,.mp4,.mov,.webm"
+          multiple
+          className="hidden"
+          onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+        />
+
+        {isUploading && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span>Uploading videos...</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderVideoLibrary = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Video className="w-5 h-5" />
+          Video Library ({uploadedVideos.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {uploadedVideos.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No videos uploaded yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {uploadedVideos.map((video) => (
+              <Card key={video.id} className="overflow-hidden">
+                <div className="aspect-video bg-gray-900 relative">
+                  <video
+                    src={video.url}
+                    className="w-full h-full object-cover"
+                    controls={playingVideo === video.id}
+                    poster=""
+                  />
+                  {playingVideo !== video.id && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Button
+                        size="lg"
+                        className="rounded-full w-16 h-16 bg-black/50 hover:bg-black/70"
+                        onClick={() => setPlayingVideo(video.id)}
+                      >
+                        <Play className="w-8 h-8 text-white" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteVideo(video.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <h4 className="font-medium truncate">{video.name}</h4>
+                  <p className="text-sm text-gray-500">{formatFileSize(video.size)}</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => startEditing(video.id)}
+                    >
+                      <Scissors className="w-4 h-4 mr-2" />
+                      Start Editing
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   const renderOverview = () => (
     <div className="space-y-6">
+      {renderUploadSection()}
+      {renderVideoLibrary()}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100">
           <CardContent className="p-6">
@@ -148,9 +380,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600">Video Agents</p>
-                <p className="text-2xl font-bold text-green-700">
-                  {videoModules.reduce((acc, m) => acc + m.agents, 0)}
-                </p>
+                <p className="text-2xl font-bold text-green-700">{agents.length}</p>
               </div>
               <Brain className="w-8 h-8 text-green-600" />
             </div>
@@ -169,94 +399,6 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           </CardContent>
         </Card>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {videoModules.map((module) => (
-          <Card 
-            key={module.id}
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4"
-            style={{ borderLeftColor: module.color.replace('bg-', '').replace('-500', '') }}
-            onClick={() => setActiveTab(module.id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className={`p-2 rounded-lg ${module.color} text-white`}>
-                  <module.icon className="w-5 h-5" />
-                </div>
-                <div className="flex gap-1">
-                  <Badge 
-                    variant={module.status === 'active' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {module.status}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {module.agents} agents
-                  </Badge>
-                </div>
-              </div>
-              <CardTitle className={`text-base ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                {module.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className={settings.dyslexiaFont ? 'font-mono' : ''}>
-                {module.description}
-              </CardDescription>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5" />
-            Quick Video Controls
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => setIsProcessing(!isProcessing)}
-              className={isProcessing ? 'bg-red-500 hover:bg-red-600' : ''}
-            >
-              {isProcessing ? <Square className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-              {isProcessing ? 'Stop Render' : 'Start Render'}
-            </Button>
-            <div className="flex-1">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span>Render Progress</span>
-                <span>{renderProgress}%</span>
-              </div>
-              <Progress value={renderProgress} className="h-2" />
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Import Media
-            </Button>
-            <Button size="sm" variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export Video
-            </Button>
-            <Button size="sm" variant="outline">
-              <Layers className="w-4 h-4 mr-2" />
-              Timeline
-            </Button>
-            <Button size="sm" variant="outline">
-              <Wand2 className="w-4 h-4 mr-2" />
-              AI Enhance
-            </Button>
-            <Button size="sm" variant="outline">
-              <Share2 className="w-4 h-4 mr-2" />
-              Publish
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 
