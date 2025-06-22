@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Video, 
   Upload, 
@@ -32,7 +34,12 @@ import {
   Target,
   Maximize,
   RotateCcw,
-  Trash2
+  Trash2,
+  HardDrive,
+  Wifi,
+  WifiOff,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -59,6 +66,8 @@ interface UploadedVideo {
   size: number;
   duration?: number;
   uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
 export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
@@ -68,6 +77,8 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
   const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [useLocalStorage, setUseLocalStorage] = useState(true);
+  const [offlineMode, setOfflineMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +89,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     );
 
     if (videoFiles.length === 0) {
-      toast.error('Please upload valid video files (.mp4, .mov, .webm)');
+      toast.error('Upload geldige videobestanden (.mp4, .mov, .webm)');
       return;
     }
 
@@ -87,34 +98,56 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     for (const file of videoFiles) {
       try {
         const videoId = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const fileName = `videos/${videoId}-${file.name}`;
         
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('media-files')
-          .upload(fileName, file);
+        // Check file size for Supabase (50MB limit)
+        const maxSupabaseSize = 50 * 1024 * 1024; // 50MB
+        const shouldUseLocal = useLocalStorage || file.size > maxSupabaseSize || offlineMode;
 
-        if (error) throw error;
+        let videoUrl: string;
+        let storageType: 'local' | 'supabase' = 'local';
 
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('media-files')
-          .getPublicUrl(fileName);
+        if (shouldUseLocal) {
+          // Use local file URL for large files or offline mode
+          videoUrl = URL.createObjectURL(file);
+          storageType = 'local';
+          
+          if (file.size > maxSupabaseSize) {
+            toast.info(`Groot bestand (${formatFileSize(file.size)}) wordt lokaal opgeslagen`);
+          }
+        } else {
+          // Upload to Supabase for smaller files
+          const fileName = `videos/${videoId}-${file.name}`;
+          
+          const { data, error } = await supabase.storage
+            .from('media-files')
+            .upload(fileName, file);
+
+          if (error) throw error;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('media-files')
+            .getPublicUrl(fileName);
+
+          videoUrl = publicUrl;
+          storageType = 'supabase';
+        }
 
         const newVideo: UploadedVideo = {
           id: videoId,
           file,
-          url: publicUrl,
+          url: videoUrl,
           name: file.name,
           size: file.size,
-          uploaded: true
+          uploaded: true,
+          storageType,
+          localPath: storageType === 'local' ? videoUrl : undefined
         };
 
         setUploadedVideos(prev => [...prev, newVideo]);
-        toast.success(`Video uploaded: ${file.name}`);
+        toast.success(`Video geüpload: ${file.name} (${storageType === 'local' ? 'lokaal' : 'cloud'})`);
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error(`Failed to upload ${file.name}`);
+        toast.error(`Upload mislukt: ${file.name}`);
       }
     }
 
@@ -144,22 +177,27 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     const video = uploadedVideos.find(v => v.id === videoId);
     if (video) {
       try {
-        // Delete from Supabase Storage
-        const fileName = `videos/${videoId}-${video.name}`;
-        await supabase.storage.from('media-files').remove([fileName]);
+        if (video.storageType === 'supabase') {
+          // Delete from Supabase Storage
+          const fileName = `videos/${videoId}-${video.name}`;
+          await supabase.storage.from('media-files').remove([fileName]);
+        } else if (video.localPath) {
+          // Revoke local object URL to free memory
+          URL.revokeObjectURL(video.localPath);
+        }
         
         setUploadedVideos(prev => prev.filter(v => v.id !== videoId));
-        toast.success('Video deleted');
+        toast.success('Video verwijderd');
       } catch (error) {
         console.error('Delete error:', error);
-        toast.error('Failed to delete video');
+        toast.error('Verwijderen mislukt');
       }
     }
   };
 
   const startEditing = (videoId: string) => {
     setActiveTab('editor');
-    toast.info('Opening video editor...');
+    toast.info('Video-editor wordt geopend...');
   };
 
   const videoModules = [
@@ -237,15 +275,101 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     }
   ];
 
+  const renderStorageSettings = () => (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Settings className="w-5 h-5" />
+          Opslag Instellingen
+        </CardTitle>
+        <CardDescription>
+          Kies hoe je video's wilt opslaan en verwerken
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HardDrive className="w-4 h-4" />
+            <Label htmlFor="local-storage">Lokale Opslag (Grote bestanden)</Label>
+          </div>
+          <Switch
+            id="local-storage"
+            checked={useLocalStorage}
+            onCheckedChange={setUseLocalStorage}
+          />
+        </div>
+        <p className="text-sm text-gray-600">
+          {useLocalStorage 
+            ? "Video's worden lokaal op je computer opgeslagen en verwerkt" 
+            : "Kleine video's (<50MB) worden in de cloud opgeslagen"
+          }
+        </p>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <WifiOff className="w-4 h-4" />
+            <Label htmlFor="offline-mode">Offline Modus</Label>
+          </div>
+          <Switch
+            id="offline-mode"
+            checked={offlineMode}
+            onCheckedChange={setOfflineMode}
+          />
+        </div>
+        <p className="text-sm text-gray-600">
+          {offlineMode 
+            ? "Alle functies werken volledig offline met lokale AI-modellen" 
+            : "Online functies beschikbaar voor cloud-processing"
+          }
+        </p>
+
+        <div className="grid grid-cols-2 gap-4 pt-2">
+          <div className="flex items-center gap-2 text-sm">
+            {useLocalStorage ? (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span>Geen bestandsgrootte limiet</span>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span>Max 50MB per bestand</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            {offlineMode ? (
+              <>
+                <WifiOff className="w-4 h-4 text-blue-600" />
+                <span>Volledig offline</span>
+              </>
+            ) : (
+              <>
+                <Wifi className="w-4 h-4 text-green-600" />
+                <span>Online functies actief</span>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderUploadSection = () => (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="w-5 h-5" />
           Video Upload
+          {useLocalStorage && (
+            <Badge variant="outline" className="ml-2">
+              <HardDrive className="w-3 h-3 mr-1" />
+              Lokaal
+            </Badge>
+          )}
         </CardTitle>
         <CardDescription>
-          Upload your videos (.mp4, .mov, .webm) to start editing
+          Upload je video's (.mp4, .mov, .webm) om te beginnen met bewerken
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -257,12 +381,17 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-lg mb-2">Drag & drop videos here</p>
-          <p className="text-gray-500 mb-4">or click to browse files</p>
+          <p className="text-lg mb-2">Sleep video's hierheen</p>
+          <p className="text-gray-500 mb-4">of klik om bestanden te kiezen</p>
           <Button>
             <Upload className="w-4 h-4 mr-2" />
-            Choose Videos
+            Kies Video's
           </Button>
+          {useLocalStorage && (
+            <p className="text-xs text-green-600 mt-2">
+              ✓ Geen bestandsgrootte limiet - werkt volledig lokaal
+            </p>
+          )}
         </div>
         
         <input
@@ -278,7 +407,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
           <div className="mt-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span>Uploading videos...</span>
+              <span>Video's uploaden...</span>
             </div>
           </div>
         )}
@@ -291,14 +420,14 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Video className="w-5 h-5" />
-          Video Library ({uploadedVideos.length})
+          Video Bibliotheek ({uploadedVideos.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
         {uploadedVideos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No videos uploaded yet</p>
+            <p>Nog geen video's geüpload</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -322,7 +451,20 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                       </Button>
                     </div>
                   )}
-                  <div className="absolute top-2 right-2">
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <Badge variant={video.storageType === 'local' ? 'default' : 'secondary'} className="text-xs">
+                      {video.storageType === 'local' ? (
+                        <>
+                          <HardDrive className="w-3 h-3 mr-1" />
+                          Lokaal
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="w-3 h-3 mr-1" />
+                          Cloud
+                        </>
+                      )}
+                    </Badge>
                     <Button
                       size="sm"
                       variant="destructive"
@@ -342,7 +484,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                       onClick={() => startEditing(video.id)}
                     >
                       <Scissors className="w-4 h-4 mr-2" />
-                      Start Editing
+                      Bewerken
                     </Button>
                     <Button size="sm" variant="outline">
                       <Download className="w-4 h-4" />
@@ -359,6 +501,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
 
   const renderOverview = () => (
     <div className="space-y-6">
+      {renderStorageSettings()}
       {renderUploadSection()}
       {renderVideoLibrary()}
       
