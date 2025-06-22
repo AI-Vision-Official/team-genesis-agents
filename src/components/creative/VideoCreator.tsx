@@ -623,6 +623,14 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     </Card>
   );
 
+  const renderOverview = () => (
+    <div className="space-y-6">
+      {renderStorageSettings()}
+      {renderUploadSection()}
+      {renderVideoLibrary()}
+    </div>
+  );
+
   const contextValue = {
     videos: uploadedVideos,
     selectedVideo,

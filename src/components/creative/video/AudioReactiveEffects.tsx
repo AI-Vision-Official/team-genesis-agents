@@ -16,11 +16,24 @@ import {
 } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
-interface AudioReactiveEffectsProps {
-  settings: AccessibilityOptions;
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
-export const AudioReactiveEffects = ({ settings }: AudioReactiveEffectsProps) => {
+interface AudioReactiveEffectsProps {
+  settings: AccessibilityOptions;
+  selectedVideo?: UploadedVideo | null;
+}
+
+export const AudioReactiveEffects = ({ settings, selectedVideo }: AudioReactiveEffectsProps) => {
   const [audioLevel, setAudioLevel] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -33,6 +46,11 @@ export const AudioReactiveEffects = ({ settings }: AudioReactiveEffectsProps) =>
           </h3>
           <p className={`text-gray-600 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
             Synchronize visuals with music amplitude and frequency
+            {selectedVideo && (
+              <span className="ml-2 text-blue-600">
+                • Video: {selectedVideo.name}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -48,9 +66,19 @@ export const AudioReactiveEffects = ({ settings }: AudioReactiveEffectsProps) =>
             <h3 className="text-lg font-medium mb-2">Audio-Reactive Effects Coming Soon</h3>
             <p className="text-gray-600">Synchronize fractals and visuals with music</p>
             <div className="flex gap-2 mt-4 justify-center">
-              <Button size="sm"><Upload className="w-4 h-4 mr-2" />Load Audio</Button>
-              <Button size="sm" variant="outline"><Settings className="w-4 h-4" /></Button>
+              <Button size="sm" disabled={!selectedVideo}>
+                <Upload className="w-4 h-4 mr-2" />
+                Analyze Audio
+              </Button>
+              <Button size="sm" variant="outline" disabled={!selectedVideo}>
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
+            {!selectedVideo && (
+              <p className="text-sm text-gray-500 mt-2">
+                Select a video from the Overview tab
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

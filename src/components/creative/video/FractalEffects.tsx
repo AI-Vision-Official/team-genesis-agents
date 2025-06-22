@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,11 +15,24 @@ import {
 } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
-interface FractalEffectsProps {
-  settings: AccessibilityOptions;
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
-export const FractalEffects = ({ settings }: FractalEffectsProps) => {
+interface FractalEffectsProps {
+  settings: AccessibilityOptions;
+  selectedVideo?: UploadedVideo | null;
+}
+
+export const FractalEffects = ({ settings, selectedVideo }: FractalEffectsProps) => {
   const [selectedFractal, setSelectedFractal] = useState('mandelbrot');
   const [isAnimating, setIsAnimating] = useState(false);
   const [zoomLevel, setZoomLevel] = useState([1]);
@@ -49,6 +61,11 @@ export const FractalEffects = ({ settings }: FractalEffectsProps) => {
           </h3>
           <p className={`text-gray-600 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
             Mathematical beauty with stable zoom transitions
+            {selectedVideo && (
+              <span className="ml-2 text-blue-600">
+                • Video: {selectedVideo.name}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -267,7 +284,7 @@ export const FractalEffects = ({ settings }: FractalEffectsProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium">Animation Type</label>
-              <select className="w-full mt-1 p-2 border rounded-md">
+              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo}>
                 <option>Smooth Zoom In</option>
                 <option>Spiral Zoom</option>
                 <option>Parameter Morph</option>
@@ -282,13 +299,14 @@ export const FractalEffects = ({ settings }: FractalEffectsProps) => {
                 min="1"
                 max="300"
                 defaultValue="30"
+                disabled={!selectedVideo}
                 className="w-full mt-1 p-2 border rounded-md"
               />
             </div>
             
             <div>
               <label className="text-sm font-medium">Frame Rate</label>
-              <select className="w-full mt-1 p-2 border rounded-md">
+              <select className="w-full mt-1 p-2 border rounded-md" disabled={!selectedVideo}>
                 <option>24 fps</option>
                 <option>30 fps</option>
                 <option>60 fps</option>
@@ -297,19 +315,24 @@ export const FractalEffects = ({ settings }: FractalEffectsProps) => {
           </div>
           
           <div className="flex gap-2">
-            <Button className="flex-1">
+            <Button className="flex-1" disabled={!selectedVideo}>
               <Play className="w-4 h-4 mr-2" />
               Generate Animation
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" disabled={!selectedVideo}>
               <Settings className="w-4 h-4 mr-2" />
               Advanced
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" disabled={!selectedVideo}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
+          {!selectedVideo && (
+            <p className="text-sm text-gray-500 text-center mt-2">
+              Select a video from the Overview tab to enable fractal effects
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

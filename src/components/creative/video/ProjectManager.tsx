@@ -5,11 +5,24 @@ import { Badge } from '@/components/ui/badge';
 import { FileVideo, Save, Upload, Settings } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
-interface ProjectManagerProps {
-  settings: AccessibilityOptions;
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
-export const ProjectManager = ({ settings }: ProjectManagerProps) => {
+interface ProjectManagerProps {
+  settings: AccessibilityOptions;
+  selectedVideo?: UploadedVideo | null;
+}
+
+export const ProjectManager = ({ settings, selectedVideo }: ProjectManagerProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19,6 +32,11 @@ export const ProjectManager = ({ settings }: ProjectManagerProps) => {
           </h3>
           <p className={`text-gray-600 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
             Version control and collaborative editing
+            {selectedVideo && (
+              <span className="ml-2 text-blue-600">
+                • Video: {selectedVideo.name}
+              </span>
+            )}
           </p>
         </div>
         <Badge variant="outline">Git-based</Badge>
@@ -31,9 +49,20 @@ export const ProjectManager = ({ settings }: ProjectManagerProps) => {
             <h3 className="text-lg font-medium mb-2">Project Manager Coming Soon</h3>
             <p className="text-gray-600">Version control and team collaboration</p>
             <div className="flex gap-2 mt-4 justify-center">
-              <Button size="sm"><Save className="w-4 h-4 mr-2" />Save Project</Button>
-              <Button size="sm" variant="outline"><Upload className="w-4 h-4" />Share</Button>
+              <Button size="sm" disabled={!selectedVideo}>
+                <Save className="w-4 h-4 mr-2" />
+                Save Project
+              </Button>
+              <Button size="sm" variant="outline" disabled={!selectedVideo}>
+                <Upload className="w-4 h-4" />
+                Share
+              </Button>
             </div>
+            {!selectedVideo && (
+              <p className="text-sm text-gray-500 mt-2">
+                Select a video from the Overview tab
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

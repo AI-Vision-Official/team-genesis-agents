@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,11 +16,24 @@ import {
 } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
-interface LogoRemovalToolProps {
-  settings: AccessibilityOptions;
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
-export const LogoRemovalTool = ({ settings }: LogoRemovalToolProps) => {
+interface LogoRemovalToolProps {
+  settings: AccessibilityOptions;
+  selectedVideo?: UploadedVideo | null;
+}
+
+export const LogoRemovalTool = ({ settings, selectedVideo }: LogoRemovalToolProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -57,6 +69,11 @@ export const LogoRemovalTool = ({ settings }: LogoRemovalToolProps) => {
           </h3>
           <p className={`text-gray-600 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
             Motion-tracked logo detection and intelligent inpainting
+            {selectedVideo && (
+              <span className="ml-2 text-blue-600">
+                • Processing: {selectedVideo.name}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -72,27 +89,42 @@ export const LogoRemovalTool = ({ settings }: LogoRemovalToolProps) => {
           <CardTitle className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
             Logo Detection Preview
+            {selectedVideo && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedVideo.storageType === 'local' ? 'Local' : 'Cloud'}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative">
-            <div className="text-white text-center">
-              <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Video with Detected Logos</p>
-              <p className="text-sm opacity-75">AI analyzing frame by frame</p>
-            </div>
-            
-            {/* Simulated logo detection boxes */}
-            <div className="absolute top-4 left-4 w-32 h-10 border-2 border-red-500 bg-red-500/20">
-              <div className="bg-red-500 text-white text-xs px-2 py-1 absolute -top-6">
-                Suno Logo (95%)
+            {selectedVideo ? (
+              <>
+                <video
+                  src={selectedVideo.url}
+                  className="w-full h-full object-contain rounded-lg"
+                  controls
+                  preload="metadata"
+                />
+                {/* Simulated logo detection boxes */}
+                <div className="absolute top-4 left-4 w-32 h-10 border-2 border-red-500 bg-red-500/20">
+                  <div className="bg-red-500 text-white text-xs px-2 py-1 absolute -top-6">
+                    Suno Logo (95%)
+                  </div>
+                </div>
+                <div className="absolute bottom-20 right-20 w-48 h-16 border-2 border-yellow-500 bg-yellow-500/20">
+                  <div className="bg-yellow-500 text-black text-xs px-2 py-1 absolute -top-6">
+                    Watermark (87%)
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-white text-center">
+                <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Select a video to detect logos</p>
+                <p className="text-sm opacity-75">Upload from the Overview tab</p>
               </div>
-            </div>
-            <div className="absolute bottom-20 right-20 w-48 h-16 border-2 border-yellow-500 bg-yellow-500/20">
-              <div className="bg-yellow-500 text-black text-xs px-2 py-1 absolute -top-6">
-                Watermark (87%)
-              </div>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -253,21 +285,26 @@ export const LogoRemovalTool = ({ settings }: LogoRemovalToolProps) => {
           <div className="flex gap-2">
             <Button 
               onClick={startProcessing}
-              disabled={isProcessing}
+              disabled={isProcessing || !selectedVideo}
               className="flex-1"
             >
               <Wand2 className="w-4 h-4 mr-2" />
               {isProcessing ? 'Processing...' : 'Start Logo Removal'}
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" disabled={!selectedVideo}>
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" disabled={!selectedVideo}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
+          {!selectedVideo && (
+            <p className="text-sm text-gray-500 text-center mt-2">
+              Select a video from the Overview tab to enable processing
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

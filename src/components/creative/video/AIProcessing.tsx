@@ -5,11 +5,24 @@ import { Badge } from '@/components/ui/badge';
 import { Brain, Eye, Upload, Settings } from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
 
-interface AIProcessingProps {
-  settings: AccessibilityOptions;
+interface UploadedVideo {
+  id: string;
+  file: File;
+  url: string;
+  name: string;
+  size: number;
+  duration?: number;
+  uploaded: boolean;
+  storageType: 'local' | 'supabase';
+  localPath?: string;
 }
 
-export const AIProcessing = ({ settings }: AIProcessingProps) => {
+interface AIProcessingProps {
+  settings: AccessibilityOptions;
+  selectedVideo?: UploadedVideo | null;
+}
+
+export const AIProcessing = ({ settings, selectedVideo }: AIProcessingProps) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19,6 +32,11 @@ export const AIProcessing = ({ settings }: AIProcessingProps) => {
           </h3>
           <p className={`text-gray-600 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
             Object detection, background removal, and captioning
+            {selectedVideo && (
+              <span className="ml-2 text-blue-600">
+                • Video: {selectedVideo.name}
+              </span>
+            )}
           </p>
         </div>
         <Badge variant="outline">TensorFlow</Badge>
@@ -31,9 +49,19 @@ export const AIProcessing = ({ settings }: AIProcessingProps) => {
             <h3 className="text-lg font-medium mb-2">AI Processing Coming Soon</h3>
             <p className="text-gray-600">Automated object detection and background removal</p>
             <div className="flex gap-2 mt-4 justify-center">
-              <Button size="sm"><Upload className="w-4 h-4 mr-2" />Process Video</Button>
-              <Button size="sm" variant="outline"><Settings className="w-4 h-4" /></Button>
+              <Button size="sm" disabled={!selectedVideo}>
+                <Upload className="w-4 h-4 mr-2" />
+                Process Video
+              </Button>
+              <Button size="sm" variant="outline">
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
+            {!selectedVideo && (
+              <p className="text-sm text-gray-500 mt-2">
+                Select a video from the Overview tab
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
