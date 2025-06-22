@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,23 +50,41 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
   const [playbackSpeed, setPlaybackSpeed] = useState([1]);
   const [volume, setVolume] = useState([75]);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (selectedVideo && videoRef.current) {
       console.log('Loading video:', selectedVideo.name, selectedVideo.url);
-      videoRef.current.load();
       setCurrentTime(0);
       setIsPlaying(false);
       setIsVideoReady(false);
+      setVideoError(null);
+      
+      // Reset video element
+      const video = videoRef.current;
+      video.pause();
+      video.currentTime = 0;
+      
+      // Set video properties before loading
+      video.crossOrigin = 'anonymous';
+      video.preload = 'metadata';
+      video.muted = true; // Start muted to avoid autoplay issues
+      
+      // Set the src
+      video.src = selectedVideo.url;
+      video.load();
     }
   }, [selectedVideo]);
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration || 0);
+      const videoDuration = videoRef.current.duration;
+      setDuration(videoDuration || 0);
       setIsVideoReady(true);
-      console.log('Video metadata loaded, duration:', videoRef.current.duration);
+      setVideoError(null);
+      console.log('Video metadata loaded successfully, duration:', videoDuration);
+      toast.success('Video loaded successfully');
     }
   };
 
@@ -79,24 +98,31 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
     if (videoRef.current && isVideoReady) {
       if (isPlaying) {
         videoRef.current.pause();
+        setIsPlaying(false);
       } else {
+        // Unmute when user manually plays
+        videoRef.current.muted = false;
         const playPromise = videoRef.current.play();
         if (playPromise) {
-          playPromise.catch(error => {
+          playPromise.then(() => {
+            setIsPlaying(true);
+          }).catch(error => {
             console.error('Video play error:', error);
-            toast.error('Failed to play video. Check if the file is corrupted or in an unsupported format.');
+            setVideoError(`Playback failed: ${error.message}`);
+            toast.error('Failed to play video. The file might be corrupted or in an unsupported format.');
           });
         }
       }
-      setIsPlaying(!isPlaying);
+    } else if (!isVideoReady) {
+      toast.error('Video is still loading, please wait...');
     } else {
-      toast.error('Video not ready for playback');
+      toast.error('No video selected');
     }
   };
 
   const handleSeek = (value: number[]) => {
     const time = value[0];
-    if (videoRef.current && isVideoReady) {
+    if (videoRef.current && isVideoReady && !isNaN(time)) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
     }
@@ -113,21 +139,75 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
     setVolume(value);
     if (videoRef.current) {
       videoRef.current.volume = value[0] / 100;
+      // Unmute if volume is set above 0
+      if (value[0] > 0) {
+        videoRef.current.muted = false;
+      }
     }
   };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error('Video error:', e);
-    const error = videoRef.current?.error;
-    if (error) {
-      console.error('Video error code:', error.code, 'message:', error.message);
-      toast.error(`Video playback error: ${error.message || 'Unknown error'}`);
+    console.error('Video error event:', e);
+    const video = videoRef.current;
+    if (video?.error) {
+      const errorMessages = {
+        1: 'Video loading was aborted',
+        2: 'Network error occurred while loading video',
+        3: 'Video file appears to be corrupted or in unsupported format',
+        4: 'Video format is not supported by this browser'
+      };
+      
+      const errorCode = video.error.code as keyof typeof errorMessages;
+      const errorMessage = errorMessages[errorCode] || `Unknown video error (code: ${errorCode})`;
+      
+      console.error('Video error details:', {
+        code: video.error.code,
+        message: video.error.message,
+        url: selectedVideo?.url,
+        fileType: selectedVideo?.file.type,
+        fileName: selectedVideo?.name
+      });
+      
+      setVideoError(errorMessage);
+      setIsVideoReady(false);
+      toast.error(errorMessage);
     }
+  };
+
+  const handleCanPlay = () => {
+    console.log('Video can play - ready for playback');
+    setIsVideoReady(true);
+    setVideoError(null);
+  };
+
+  const handleWaiting = () => {
+    console.log('Video is buffering...');
+  };
+
+  const handleLoadStart = () => {
+    console.log('Video load started');
     setIsVideoReady(false);
+    setVideoError(null);
+  };
+
+  const skipBackward = () => {
+    if (videoRef.current && isVideoReady) {
+      const newTime = Math.max(0, currentTime - 10);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const skipForward = () => {
+    if (videoRef.current && isVideoReady) {
+      const newTime = Math.min(duration, currentTime + 10);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
   };
 
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return '0:00';
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -189,12 +269,16 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                   onError={handleVideoError}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
+                  onCanPlay={handleCanPlay}
+                  onWaiting={handleWaiting}
+                  onLoadStart={handleLoadStart}
                   preload="metadata"
                   crossOrigin="anonymous"
+                  playsInline
                 />
                 
                 {/* Video Controls Overlay */}
-                {isVideoReady && (
+                {isVideoReady && !videoError && (
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="flex items-center gap-4 bg-black/70 rounded-lg px-4 py-2 backdrop-blur-sm">
                       <Button
@@ -207,7 +291,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                       
                       <Button
                         size="sm"
-                        onClick={() => handleSeek([Math.max(0, currentTime - 10)])}
+                        onClick={skipBackward}
                         className="bg-white/20 hover:bg-white/30"
                         disabled={!isVideoReady}
                       >
@@ -216,7 +300,7 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                       
                       <Button
                         size="sm"
-                        onClick={() => handleSeek([Math.min(duration, currentTime + 10)])}
+                        onClick={skipForward}
                         className="bg-white/20 hover:bg-white/30"
                         disabled={!isVideoReady}
                       >
@@ -254,11 +338,40 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
                 )}
                 
                 {/* Loading indicator */}
-                {!isVideoReady && (
+                {!isVideoReady && !videoError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <div className="text-white text-center">
                       <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                       <p>Loading video...</p>
+                      <p className="text-sm opacity-75 mt-1">Processing {selectedVideo.name}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Error indicator */}
+                {videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-white text-center max-w-md px-4">
+                      <div className="w-8 h-8 border-2 border-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <span className="text-red-500">!</span>
+                      </div>
+                      <p className="text-red-400 mb-2">Video Error</p>
+                      <p className="text-sm opacity-75">{videoError}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-3"
+                        onClick={() => {
+                          if (videoRef.current && selectedVideo) {
+                            videoRef.current.src = selectedVideo.url;
+                            videoRef.current.load();
+                            setVideoError(null);
+                          }
+                        }}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Retry
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -432,9 +545,14 @@ export const VideoEditor = ({ settings, selectedVideo }: VideoEditorProps) => {
               Select a video from the Overview tab to enable export
             </p>
           )}
-          {selectedVideo && !isVideoReady && (
+          {selectedVideo && !isVideoReady && !videoError && (
             <p className="text-sm text-amber-600 text-center mt-2">
               Video is loading... Please wait
+            </p>
+          )}
+          {videoError && (
+            <p className="text-sm text-red-600 text-center mt-2">
+              Video error: {videoError}
             </p>
           )}
         </CardContent>

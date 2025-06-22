@@ -1,4 +1,3 @@
-
 import { useState, useRef, createContext, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -123,7 +122,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         let storageType: 'local' | 'supabase' = 'local';
 
         if (shouldUseLocal) {
-          // Use local file URL for large files or offline mode
+          // Create blob URL for local files
           videoUrl = URL.createObjectURL(file);
           storageType = 'local';
           
@@ -149,7 +148,7 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
         }
 
         // Get video duration
-        const duration = await getVideoDuration(videoUrl);
+        const duration = await getVideoDuration(file, videoUrl);
 
         const newVideo: UploadedVideo = {
           id: videoId,
@@ -174,18 +173,44 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
     setIsUploading(false);
   };
 
-  const getVideoDuration = (url: string): Promise<number> => {
+  const getVideoDuration = (file: File, url: string): Promise<number> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
       video.preload = 'metadata';
-      video.onloadedmetadata = () => {
-        resolve(video.duration);
+      
+      const handleLoadedMetadata = () => {
+        resolve(video.duration || 0);
+        cleanup();
       };
-      video.onerror = () => {
-        console.error('Error loading video metadata for:', url);
+      
+      const handleError = (e: Event) => {
+        console.error('Error loading video metadata:', e);
         resolve(0);
+        cleanup();
       };
+      
+      const cleanup = () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('error', handleError);
+        video.src = '';
+      };
+      
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('error', handleError);
+      
+      // Set crossOrigin before src for better compatibility
+      video.crossOrigin = 'anonymous';
       video.src = url;
+      
+      // Fallback timeout
+      setTimeout(() => {
+        if (video.duration) {
+          resolve(video.duration);
+        } else {
+          resolve(0);
+        }
+        cleanup();
+      }, 5000);
     });
   };
 
@@ -510,11 +535,32 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                     className="w-full h-full object-cover"
                     preload="metadata"
                     controls={playingVideo === video.id}
+                    muted
+                    crossOrigin="anonymous"
                     onPlay={() => handleVideoPlay(video.id)}
                     onPause={() => handleVideoPause(video.id)}
                     onError={(e) => {
                       console.error('Video playback error:', e);
-                      toast.error(`Failed to play video: ${video.name}`);
+                      const target = e.target as HTMLVideoElement;
+                      const error = target.error;
+                      if (error) {
+                        console.error('Video error details:', {
+                          code: error.code,
+                          message: error.message,
+                          url: video.url,
+                          type: video.file.type
+                        });
+                      }
+                      toast.error(`Video playback failed: ${video.name}. Try re-uploading the file.`);
+                    }}
+                    onCanPlay={() => {
+                      console.log('Video can play:', video.name);
+                    }}
+                    onLoadStart={() => {
+                      console.log('Video load started:', video.name);
+                    }}
+                    onLoadedData={() => {
+                      console.log('Video data loaded:', video.name);
                     }}
                   />
                   {playingVideo !== video.id && (
@@ -526,8 +572,15 @@ export const VideoCreator = ({ agents, settings }: VideoCreatorProps) => {
                           e.stopPropagation();
                           const videoElement = e.currentTarget.parentElement?.parentElement?.querySelector('video') as HTMLVideoElement;
                           if (videoElement) {
-                            videoElement.play();
-                            handleVideoPlay(video.id);
+                            const playPromise = videoElement.play();
+                            if (playPromise) {
+                              playPromise.then(() => {
+                                handleVideoPlay(video.id);
+                              }).catch(error => {
+                                console.error('Play promise rejected:', error);
+                                toast.error('Could not play video. Please check the file format.');
+                              });
+                            }
                           }
                         }}
                       >
