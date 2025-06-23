@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,13 +14,19 @@ import {
   Activity,
   TrendingUp,
   Eye,
-  Settings
+  Settings,
+  FileText,
+  Users,
+  Globe
 } from 'lucide-react';
 import { EthicsPrivacyDashboard } from './EthicsPrivacyDashboard';
 import { EmotionalWellnessDashboard } from './EmotionalWellnessDashboard';
 import { ContinuityRecoveryDashboard } from './ContinuityRecoveryDashboard';
 import { CommunityFeedbackDashboard } from './CommunityFeedbackDashboard';
 import { LearningDevelopmentDashboard } from './LearningDevelopmentDashboard';
+import { ResearchMemoAgent } from './humanitarian/ResearchMemoAgent';
+import { ImpactStoryGenerator } from './humanitarian/ImpactStoryGenerator';
+import { GrantWriterAgent } from './humanitarian/GrantWriterAgent';
 import type { SpecializedAgent, AgentAlert } from '@/types/specializedAgents';
 
 export const SpecializedAgentsCenter = () => {
@@ -163,7 +168,7 @@ export const SpecializedAgentsCenter = () => {
             <Shield className="w-8 h-8 text-purple-600" />
             Specialized AI Guardian Network
           </h1>
-          <p className="text-slate-600 mt-2">Ethics, wellness, continuity, feedback, and learning specialists</p>
+          <p className="text-slate-600 mt-2">Ethics, wellness, continuity, feedback, learning, and humanitarian specialists</p>
         </div>
         <div className="flex gap-3">
           <Button className="bg-gradient-to-r from-purple-600 to-blue-600">
@@ -258,13 +263,16 @@ export const SpecializedAgentsCenter = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-3 lg:grid-cols-9 w-full">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="ethics">Ethics & Privacy</TabsTrigger>
+          <TabsTrigger value="ethics">Ethics</TabsTrigger>
           <TabsTrigger value="wellness">Wellness</TabsTrigger>
           <TabsTrigger value="continuity">Continuity</TabsTrigger>
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
           <TabsTrigger value="learning">Learning</TabsTrigger>
+          <TabsTrigger value="research">Research</TabsTrigger>
+          <TabsTrigger value="stories">Stories</TabsTrigger>
+          <TabsTrigger value="grants">Grants</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -338,6 +346,57 @@ export const SpecializedAgentsCenter = () => {
 
         <TabsContent value="learning">
           <LearningDevelopmentDashboard />
+        </TabsContent>
+
+        <TabsContent value="research">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  AI Research & Analysis Hub
+                </CardTitle>
+                <CardDescription>
+                  Transform complex sources into actionable insights for NGO decision-making
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <ResearchMemoAgent />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stories">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5" />
+                  Impact Story Creation Center
+                </CardTitle>
+                <CardDescription>
+                  Create compelling narratives that showcase your humanitarian impact
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <ImpactStoryGenerator />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="grants">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Grant Writing & Fundraising Assistant
+                </CardTitle>
+                <CardDescription>
+                  Professional grant proposals formatted for major international funders
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <GrantWriterAgent />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -2,30 +2,22 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   WifiOff, 
   Database, 
   Bot, 
-  FileText, 
-  Search, 
-  Download, 
-  Upload,
-  Globe,
+  Brain,
   HardDrive,
   Zap,
-  CheckCircle,
-  AlertCircle,
-  Play,
-  Pause,
-  Settings
+  Activity,
+  Settings,
+  Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ModelOrchestrator } from './ModelOrchestrator';
+import { OfflineDataProcessor } from './OfflineDataProcessor';
 
 interface OfflineAgent {
   id: string;
@@ -59,8 +51,8 @@ export const OfflineCenter = () => {
       type: 'General Assistant',
       status: 'active',
       capabilities: ['Text Processing', 'Code Analysis', 'Local Search'],
-      localModel: 'Llama-7B-Chat',
-      memoryUsage: 3.2,
+      localModel: 'Llama-13B-Chat',
+      memoryUsage: 8.2,
       lastActive: new Date(),
       tasksCompleted: 127
     },
@@ -68,10 +60,10 @@ export const OfflineCenter = () => {
       id: '2',
       name: 'CodeHelper-Beta',
       type: 'Programming Assistant',
-      status: 'idle',
+      status: 'active',
       capabilities: ['Code Review', 'Bug Detection', 'Documentation'],
-      localModel: 'CodeT5-Base',
-      memoryUsage: 1.8,
+      localModel: 'CodeT5-Large',
+      memoryUsage: 4.1,
       lastActive: new Date(Date.now() - 30000),
       tasksCompleted: 89
     },
@@ -81,14 +73,14 @@ export const OfflineCenter = () => {
       type: 'Data Analysis',
       status: 'active',
       capabilities: ['Data Mining', 'Statistical Analysis', 'Report Generation'],
-      localModel: 'DistilBERT-Base',
-      memoryUsage: 2.1,
+      localModel: 'DistilBERT-Multilingual',
+      memoryUsage: 2.3,
       lastActive: new Date(),
       tasksCompleted: 56
     }
   ]);
 
-  const [kiwixResources, setKiwixResources] = useState<KiwixResource[]>([
+  const [kiwixResources] = useState<KiwixResource[]>([
     {
       id: '1',
       name: 'Wikipedia (English)',
@@ -129,9 +121,6 @@ export const OfflineCenter = () => {
     }
   ]);
 
-  const [selectedAgent, setSelectedAgent] = useState<OfflineAgent | null>(null);
-  const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -161,60 +150,6 @@ export const OfflineCenter = () => {
     };
   }, [toast]);
 
-  const toggleAgentStatus = (agentId: string) => {
-    setOfflineAgents(agents => 
-      agents.map(agent => 
-        agent.id === agentId 
-          ? { 
-              ...agent, 
-              status: agent.status === 'active' ? 'paused' : 'active',
-              lastActive: new Date()
-            }
-          : agent
-      )
-    );
-  };
-
-  const startResourceDownload = (resourceId: string) => {
-    setKiwixResources(resources =>
-      resources.map(resource =>
-        resource.id === resourceId
-          ? { ...resource, downloadProgress: 0 }
-          : resource
-      )
-    );
-
-    // Simulate download progress
-    const interval = setInterval(() => {
-      setKiwixResources(resources =>
-        resources.map(resource => {
-          if (resource.id === resourceId && resource.downloadProgress !== undefined) {
-            const newProgress = resource.downloadProgress + Math.random() * 10;
-            if (newProgress >= 100) {
-              clearInterval(interval);
-              toast({
-                title: "Download Complete",
-                description: `${resource.name} is now available offline.`
-              });
-              return { ...resource, isDownloaded: true, downloadProgress: undefined };
-            }
-            return { ...resource, downloadProgress: Math.min(newProgress, 100) };
-          }
-          return resource;
-        })
-      );
-    }, 500);
-  };
-
-  const getStatusColor = (status: OfflineAgent['status']) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'idle': return 'bg-yellow-100 text-yellow-800';
-      case 'paused': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const activeAgents = offlineAgents.filter(agent => agent.status === 'active');
   const totalMemoryUsage = offlineAgents.reduce((total, agent) => total + agent.memoryUsage, 0);
   const downloadedResources = kiwixResources.filter(resource => resource.isDownloaded);
@@ -226,342 +161,198 @@ export const OfflineCenter = () => {
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent flex items-center gap-3">
             <WifiOff className="w-8 h-8 text-orange-600" />
-            Offline Command Center
+            Offline AI Command Center
           </h1>
-          <p className="text-slate-600 mt-2">
-            Maintain productivity when internet connectivity is limited or unavailable
-          </p>
+          <p className="text-slate-600 mt-2">Autonomous AI agents and resources for offline operation</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant={isOnline ? "default" : "destructive"} className="px-3 py-1">
-            {isOnline ? (
-              <>
-                <Globe className="w-4 h-4 mr-2" />
-                Online
-              </>
-            ) : (
-              <>
-                <WifiOff className="w-4 h-4 mr-2" />
-                Offline Mode
-              </>
-            )}
+        <div className="flex gap-3">
+          <Badge className={isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+            {isOnline ? 'Online' : 'Offline'}
           </Badge>
+          <Button variant="outline">
+            <Settings className="w-4 h-4 mr-2" />
+            Configure
+          </Button>
         </div>
       </div>
 
-      {/* Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Bot className="w-4 h-4 text-blue-600" />
-              Active Agents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{activeAgents.length}</div>
-            <p className="text-xs text-slate-600">of {offlineAgents.length} total</p>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-700">Active Agents</p>
+                <p className="text-2xl font-bold text-blue-900">{activeAgents.length}</p>
+              </div>
+              <Bot className="w-8 h-8 text-blue-600" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-green-600" />
-              Memory Usage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalMemoryUsage.toFixed(1)} GB</div>
-            <p className="text-xs text-slate-600">Local models</p>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-700">Memory Usage</p>
+                <p className="text-2xl font-bold text-green-900">{totalMemoryUsage.toFixed(1)} GB</p>
+              </div>
+              <HardDrive className="w-8 h-8 text-green-600" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Database className="w-4 h-4 text-purple-600" />
-              Offline Resources
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{downloadedResources.length}</div>
-            <p className="text-xs text-slate-600">Available locally</p>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-700">Downloaded Resources</p>
+                <p className="text-2xl font-bold text-purple-900">{downloadedResources.length}</p>
+              </div>
+              <Database className="w-8 h-8 text-purple-600" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-600" />
-              System Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">Operational</div>
-            <p className="text-xs text-slate-600">All systems ready</p>
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-700">System Status</p>
+                <p className="text-2xl font-bold text-orange-900">Optimal</p>
+              </div>
+              <Activity className="w-8 h-8 text-orange-600" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content */}
-      <Tabs defaultValue="agents" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="agents">Offline Agents</TabsTrigger>
-          <TabsTrigger value="resources">Kiwix Resources</TabsTrigger>
-          <TabsTrigger value="search">Local Search</TabsTrigger>
+      {/* Main Tabs */}
+      <Tabs defaultValue="orchestrator" className="w-full">
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="orchestrator">Model Orchestrator</TabsTrigger>
+          <TabsTrigger value="dataprocessor">Data Processing</TabsTrigger>
+          <TabsTrigger value="agents">Local Agents</TabsTrigger>
+          <TabsTrigger value="resources">Offline Resources</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="agents" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {offlineAgents.map((agent) => (
-              <Card key={agent.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Bot className="w-5 h-5 text-blue-600" />
-                        {agent.name}
-                      </CardTitle>
-                      <CardDescription>{agent.type}</CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(agent.status)}>
-                      {agent.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Local Model:</p>
-                      <p className="text-sm text-slate-600">{agent.localModel}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Memory Usage:</p>
-                      <p className="text-sm text-slate-600">{agent.memoryUsage} GB</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Tasks Completed:</p>
-                      <p className="text-sm text-slate-600">{agent.tasksCompleted}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.capabilities.slice(0, 2).map((capability, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {capability}
-                        </Badge>
-                      ))}
-                      {agent.capabilities.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{agent.capabilities.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleAgentStatus(agent.id)}
-                        className="flex-1"
-                      >
-                        {agent.status === 'active' ? (
-                          <Pause className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Play className="w-4 h-4 mr-2" />
-                        )}
-                        {agent.status === 'active' ? 'Pause' : 'Activate'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAgent(agent);
-                          setIsAgentDialogOpen(true);
-                        }}
-                      >
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <TabsContent value="orchestrator">
+          <ModelOrchestrator />
         </TabsContent>
 
-        <TabsContent value="resources" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {kiwixResources.map((resource) => (
-              <Card key={resource.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Database className="w-5 h-5 text-purple-600" />
-                        {resource.name}
-                      </CardTitle>
-                      <CardDescription>{resource.description}</CardDescription>
-                    </div>
-                    {resource.isDownloaded ? (
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Downloaded
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">
-                        <Download className="w-3 h-3 mr-1" />
-                        Available
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Size:</span>
-                      <span className="font-medium">{resource.size}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Language:</span>
-                      <span className="font-medium">{resource.language}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Category:</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {resource.category}
-                      </Badge>
-                    </div>
-                    
-                    {resource.downloadProgress !== undefined && (
-                      <div className="space-y-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${resource.downloadProgress}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-slate-600 text-center">
-                          Downloading... {Math.round(resource.downloadProgress)}%
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="pt-2">
-                      {resource.isDownloaded ? (
-                        <Button variant="outline" className="w-full" disabled>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Available Offline
-                        </Button>
-                      ) : resource.downloadProgress !== undefined ? (
-                        <Button variant="outline" className="w-full" disabled>
-                          <Download className="w-4 h-4 mr-2" />
-                          Downloading...
-                        </Button>
-                      ) : (
-                        <Button 
-                          onClick={() => startResourceDownload(resource.id)}
-                          className="w-full"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <TabsContent value="dataprocessor">
+          <OfflineDataProcessor />
         </TabsContent>
 
-        <TabsContent value="search" className="space-y-4">
+        <TabsContent value="agents" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5 text-blue-600" />
-                Local Knowledge Search
+                <Bot className="w-5 h-5" />
+                Local AI Agents
               </CardTitle>
               <CardDescription>
-                Search through your offline resources and local knowledge base
+                Autonomous agents running locally without internet dependency
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Search offline resources..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button>
-                    <Search className="w-4 h-4" />
-                  </Button>
-                </div>
-                
-                <div className="text-sm text-slate-600">
-                  <p className="mb-2">Available offline resources for search:</p>
-                  <ul className="space-y-1">
-                    {downloadedResources.map((resource) => (
-                      <li key={resource.id} className="flex items-center gap-2">
-                        <CheckCircle className="w-3 h-3 text-green-600" />
-                        {resource.name}
-                      </li>
-                    ))}
-                  </ul>
-                  {downloadedResources.length === 0 && (
-                    <p className="text-slate-500 italic">
-                      No offline resources downloaded yet. Visit the Resources tab to download content.
-                    </p>
-                  )}
-                </div>
+              <div className="grid gap-4">
+                {offlineAgents.map((agent) => (
+                  <Card key={agent.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                          <Brain className="w-6 h-6 text-white" />
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-medium">{agent.name}</h4>
+                          <p className="text-sm text-gray-500">{agent.type} • {agent.localModel}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {agent.capabilities.slice(0, 2).map((capability, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {capability}
+                              </Badge>
+                            ))}
+                            {agent.capabilities.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{agent.capabilities.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            agent.status === 'active' ? 'bg-green-500' :
+                            agent.status === 'idle' ? 'bg-yellow-500' : 'bg-gray-400'
+                          }`} />
+                          <Badge className={
+                            agent.status === 'active' ? 'bg-green-100 text-green-800' :
+                            agent.status === 'idle' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {agent.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {agent.memoryUsage} GB • {agent.tasksCompleted} tasks
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="resources" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Offline Knowledge Resources
+              </CardTitle>
+              <CardDescription>
+                Downloaded resources for offline access and research
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {kiwixResources.map((resource) => (
+                  <Card key={resource.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">{resource.name}</h4>
+                        <p className="text-sm text-gray-500 mb-2">{resource.description}</p>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="text-xs">{resource.category}</Badge>
+                          <Badge variant="outline" className="text-xs">{resource.language}</Badge>
+                          <Badge variant="outline" className="text-xs">{resource.size}</Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {resource.isDownloaded ? (
+                          <Badge className="bg-green-100 text-green-800">Downloaded</Badge>
+                        ) : (
+                          <Button size="sm" variant="outline">
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Agent Details Dialog */}
-      <Dialog open={isAgentDialogOpen} onOpenChange={setIsAgentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Agent Configuration</DialogTitle>
-            <DialogDescription>
-              Configure settings for {selectedAgent?.name}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedAgent && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Agent Name</Label>
-                <Input value={selectedAgent.name} readOnly />
-              </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Input value={selectedAgent.type} readOnly />
-              </div>
-              <div className="space-y-2">
-                <Label>Local Model</Label>
-                <Input value={selectedAgent.localModel} readOnly />
-              </div>
-              <div className="space-y-2">
-                <Label>Capabilities</Label>
-                <div className="flex flex-wrap gap-2">
-                  {selectedAgent.capabilities.map((capability, index) => (
-                    <Badge key={index} variant="secondary">
-                      {capability}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAgentDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
