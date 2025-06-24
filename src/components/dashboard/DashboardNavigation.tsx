@@ -1,16 +1,4 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  Home, Monitor, Users, Bot, Share2, Target, Heart, Code, GraduationCap, 
-  Palette, Megaphone, Lightbulb, Zap, GitBranch, Building, Settings, 
-  CheckSquare, Activity, Bell, Play, FileText, Rocket, ChevronDown, 
-  ChevronRight, Shield, Brain, BarChart3, Wrench, Wifi, Mic, 
-  MessageSquare, UserCheck
-} from 'lucide-react';
 import React from 'react';
 
 interface DashboardNavigationProps {
@@ -35,14 +23,14 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'monitoring', label: 'Real-Time Monitor', icon: '📡' },
     { id: 'insights', label: 'AI Insights', icon: '🧠' },
     { id: 'security', label: 'Security Center', icon: '🔒' },
-    { id: 'trust-screening', label: 'Trust & Identity Screening', icon: '🔒' },
     { id: 'social', label: 'Social Media', icon: '📱' },
     { id: 'mission', label: 'Mission Control', icon: '🎯' },
     { id: 'humanitarian', label: 'Humanitarian', icon: '🌍' },
     { id: 'web', label: 'Web Development', icon: '🌐' },
     { id: 'education', label: 'Education', icon: '🎓' },
+    { id: 'creative', label: 'Creative Studio', icon: '🎨' },
     { id: 'templates', label: 'Template Toolkit', icon: '🧾' },
-    { id: 'innovation', label: 'Innovation Hub', icon: '🔬' },
+    { id: 'innovation', label: 'Innovation Hub (Chris)', icon: '🔬' },
     { id: 'marketing', label: 'Marketing AI', icon: '📢' },
     { id: 'invention', label: 'Invention Hub', icon: '💡' },
     { id: 'integrations', label: 'Integrations', icon: '🔗' },
@@ -51,7 +39,6 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'agents', label: 'Agent Framework', icon: '🤖' },
     { id: 'specialized', label: 'Specialized Agents', icon: '🛡️' },
     { id: 'evaluation', label: 'Evaluation', icon: '📋' }
-    { id: 'creative', label: 'Creative Studio', icon: '🎨' },
   ];
 
   return (
@@ -77,4 +64,3 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     </div>
   );
 };
-
