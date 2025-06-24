@@ -1,4 +1,16 @@
 
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  Home, Monitor, Users, Bot, Share2, Target, Heart, Code, GraduationCap, 
+  Palette, Megaphone, Lightbulb, Zap, GitBranch, Building, Settings, 
+  CheckSquare, Activity, Bell, Play, FileText, Rocket, ChevronDown, 
+  ChevronRight, Shield, Brain, BarChart3, Wrench, Wifi, Mic, 
+  MessageSquare, UserCheck
+} from 'lucide-react';
 import React from 'react';
 
 interface DashboardNavigationProps {
@@ -65,3 +77,4 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     </div>
   );
 };
+
