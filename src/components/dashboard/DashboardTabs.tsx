@@ -207,7 +207,7 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
   };
 
   return (
-    <div className="mt-6">
+    <div>
       {renderTabContent()}
     </div>
   );
