@@ -1,51 +1,11 @@
 
 import { useState, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  Download, 
-  Shuffle, 
-  Edit, 
-  Trash2, 
-  GripVertical, 
-  Sparkles, 
-  FileText, 
-  Image as ImageIcon,
-  Archive,
-  Save,
-  Wand2,
-  Upload,
-  RotateCcw,
-  Zap
-} from 'lucide-react';
 import type { AccessibilityOptions } from '@/types/creative';
-
-interface DeckCard {
-  id: string;
-  title: string;
-  meaning: string;
-  interpretation: string;
-  symbol: string;
-  imageDescription?: string;
-  generatedImage?: string;
-  localImage?: string;
-  isFlipped?: boolean;
-}
-
-interface Deck {
-  id: string;
-  name: string;
-  type: 'tarot' | 'angel' | 'affirmation' | 'oracle';
-  description: string;
-  cards: DeckCard[];
-  createdAt: Date;
-}
+import type { DeckCard, Deck, DeckType } from '@/types/cardDeck';
+import { DeckConfiguration } from './DeckConfiguration';
+import { CardGrid } from './CardGrid';
+import { CardEditor } from './CardEditor';
+import { ExportControls } from './ExportControls';
 
 interface CardDeckCreatorProps {
   settings: AccessibilityOptions;
@@ -65,9 +25,8 @@ export const CardDeckCreator = ({ settings }: CardDeckCreatorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [generatingImages, setGeneratingImages] = useState<Set<string>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const deckTypes = [
+  const deckTypes: DeckType[] = [
     { value: 'tarot', label: 'Tarot Cards', description: 'Traditional divination cards', count: 78 },
     { value: 'angel', label: 'Angel Cards', description: 'Spiritual guidance cards', count: 44 },
     { value: 'affirmation', label: 'Affirmation Cards', description: 'Positive affirmation cards', count: 52 },
@@ -392,405 +351,52 @@ export const CardDeckCreator = ({ settings }: CardDeckCreatorProps) => {
             Create personalized tarot, angel, affirmation, and oracle card decks
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={saveDeck} variant="outline" size="sm">
-            <Save className="w-4 h-4 mr-2" />
-            Save Deck
-          </Button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Deck Configuration */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Deck Configuration</CardTitle>
-            <CardDescription>Set up your deck details and generate content</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="deck-name">Deck Name</Label>
-              <Input
-                id="deck-name"
-                value={currentDeck.name}
-                onChange={(e) => setCurrentDeck(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter deck name..."
-              />
-            </div>
+        <DeckConfiguration
+          currentDeck={currentDeck}
+          setCurrentDeck={setCurrentDeck}
+          deckTypes={deckTypes}
+          createStandardDeck={createStandardDeck}
+          addCard={addCard}
+          generateAllImages={generateAllImages}
+          saveDeck={saveDeck}
+          isGenerating={isGenerating}
+        />
 
-            <div>
-              <Label htmlFor="deck-type">Deck Type</Label>
-              <Select value={currentDeck.type} onValueChange={(value: any) => setCurrentDeck(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {deckTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div>
-                        <div className="font-medium">{type.label}</div>
-                        <div className="text-xs text-gray-500">{type.count} cards • {type.description}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button 
-              onClick={() => createStandardDeck(currentDeck.type)} 
-              className="w-full"
-              variant="outline"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Create Standard {deckTypes.find(t => t.value === currentDeck.type)?.count}-Card Deck
-            </Button>
-
-            <div>
-              <Label htmlFor="deck-description">Description</Label>
-              <Textarea
-                id="deck-description"
-                value={currentDeck.description}
-                onChange={(e) => setCurrentDeck(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe your deck's purpose and theme..."
-                rows={3}
-              />
-            </div>
-
-            <Button onClick={addCard} className="w-full">
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Card
-            </Button>
-
-            <div className="pt-4 border-t space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Total Cards:</span>
-                <Badge variant="secondary">{currentDeck.cards.length}</Badge>
-              </div>
-              
-              <Button 
-                onClick={generateAllImages} 
-                disabled={isGenerating}
-                className="w-full"
-                variant="outline"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                {isGenerating ? 'Generating...' : 'Generate All Images'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Visual Card Grid */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Card Collection</CardTitle>
-            <CardDescription>Visual grid of your cards - drag to reorder, click to flip</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
-              {currentDeck.cards.map((card, index) => (
-                <div
-                  key={card.id}
-                  draggable
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
-                  className={`relative group cursor-pointer transition-all duration-300 ${
-                    card.isFlipped ? 'transform rotateY-180' : ''
-                  }`}
-                  style={{ perspective: '1000px' }}
-                >
-                  <div 
-                    className="relative w-full aspect-[3/4] bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden transition-transform duration-300 hover:scale-105"
-                    onClick={() => flipCard(card.id)}
-                  >
-                    {/* Front side */}
-                    <div className={`absolute inset-0 backface-hidden ${card.isFlipped ? 'rotateY-180' : ''}`}>
-                      {(card.generatedImage || card.localImage) ? (
-                        <img 
-                          src={card.generatedImage || card.localImage} 
-                          alt={card.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                          <div className="text-2xl mb-2">{card.symbol}</div>
-                          <div className={`font-bold text-sm ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                            {card.title || 'Untitled'}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Card title overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2">
-                        <div className={`text-xs font-bold ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          {card.title || 'Untitled'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Back side */}
-                    <div className={`absolute inset-0 backface-hidden rotateY-180 bg-gradient-to-br from-indigo-50 to-purple-50 p-4 ${card.isFlipped ? 'rotateY-0' : ''}`}>
-                      <div className="h-full flex flex-col justify-center text-center">
-                        <div className={`text-xs font-bold mb-2 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          {card.title}
-                        </div>
-                        <div className="text-2xl mb-2">{card.symbol}</div>
-                        <div className={`text-xs text-gray-700 mb-1 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          <strong>Meaning:</strong> {card.meaning}
-                        </div>
-                        <div className={`text-xs text-gray-600 italic ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          {card.interpretation}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card actions overlay */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0 bg-white bg-opacity-80"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingCard(card);
-                      }}
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0 bg-white bg-opacity-80"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteCard(card.id);
-                      }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-
-                  {/* Generation status */}
-                  {generatingImages.has(card.id) && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                      <div className="text-white text-xs">Generating...</div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {currentDeck.cards.length === 0 && (
-                <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
-                  <FileText className="w-12 h-12 mb-4 opacity-50" />
-                  <p>No cards yet. Create a standard deck or add individual cards!</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <CardGrid
+          currentDeck={currentDeck}
+          settings={settings}
+          flipCard={flipCard}
+          setEditingCard={setEditingCard}
+          deleteCard={deleteCard}
+          generatingImages={generatingImages}
+          handleDragStart={handleDragStart}
+          handleDragOver={handleDragOver}
+          handleDragEnd={handleDragEnd}
+        />
       </div>
 
-      {/* Card Editor Modal */}
-      {editingCard && (
-        <Card className="fixed inset-0 z-50 bg-white shadow-2xl overflow-y-auto">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Edit Card: {editingCard.title || 'Untitled'}</CardTitle>
-              <Button onClick={() => setEditingCard(null)} variant="ghost">
-                ✕
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="card-title">Card Title</Label>
-                  <Input
-                    id="card-title"
-                    value={editingCard.title}
-                    onChange={(e) => updateCard(editingCard.id, { title: e.target.value })}
-                    placeholder="Enter card title..."
-                  />
-                </div>
+      <CardEditor
+        editingCard={editingCard}
+        setEditingCard={setEditingCard}
+        updateCard={updateCard}
+        generateCardImage={generateCardImage}
+        handleImageUpload={handleImageUpload}
+        generateInterpretation={generateInterpretation}
+        generatingImages={generatingImages}
+        settings={settings}
+      />
 
-                <div>
-                  <Label htmlFor="card-symbol">Symbol/Emoji</Label>
-                  <Input
-                    id="card-symbol"
-                    value={editingCard.symbol}
-                    onChange={(e) => updateCard(editingCard.id, { symbol: e.target.value })}
-                    placeholder="🌟 Add a symbol..."
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="card-meaning">Meaning/Message</Label>
-                  <Textarea
-                    id="card-meaning"
-                    value={editingCard.meaning}
-                    onChange={(e) => updateCard(editingCard.id, { meaning: e.target.value })}
-                    placeholder="Enter the card's meaning or message..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="card-interpretation">Interpretation</Label>
-                  <Textarea
-                    id="card-interpretation"
-                    value={editingCard.interpretation}
-                    onChange={(e) => updateCard(editingCard.id, { interpretation: e.target.value })}
-                    placeholder="Enter detailed interpretation..."
-                    rows={3}
-                  />
-                  <Button 
-                    onClick={() => generateInterpretation(editingCard.id)}
-                    variant="outline" 
-                    size="sm"
-                    className="mt-2"
-                  >
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    AI Suggest Interpretation
-                  </Button>
-                </div>
-
-                <div>
-                  <Label htmlFor="image-description">Image Description (for AI generation)</Label>
-                  <Textarea
-                    id="image-description"
-                    value={editingCard.imageDescription || ''}
-                    onChange={(e) => updateCard(editingCard.id, { imageDescription: e.target.value })}
-                    placeholder="Describe the image you'd like for this card..."
-                    rows={2}
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => generateCardImage(editingCard.id)}
-                    disabled={generatingImages.has(editingCard.id)}
-                    variant="outline" 
-                    size="sm"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate AI Image
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => fileInputRef.current?.click()}
-                    variant="outline" 
-                    size="sm"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Image
-                  </Button>
-                  
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload(editingCard.id, file);
-                    }}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-
-              {/* Card Preview */}
-              <div className="space-y-4">
-                <Label>Card Preview</Label>
-                <div className="relative">
-                  <div className="w-full max-w-xs mx-auto aspect-[3/4] bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-gray-300 overflow-hidden">
-                    {(editingCard.generatedImage || editingCard.localImage) ? (
-                      <img 
-                        src={editingCard.generatedImage || editingCard.localImage} 
-                        alt={editingCard.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                        <div className="text-4xl mb-4">{editingCard.symbol}</div>
-                        <div className={`font-bold text-lg mb-2 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          {editingCard.title}
-                        </div>
-                        <div className={`text-sm text-gray-700 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-                          {editingCard.meaning}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <Button
-                    onClick={() => updateCard(editingCard.id, { isFlipped: !editingCard.isFlipped })}
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 w-full"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Flip Card
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Export Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Export & Download Options</CardTitle>
-          <CardDescription>Download your finished deck in various formats</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button 
-              onClick={exportAsPDF} 
-              variant="outline"
-              disabled={currentDeck.cards.length === 0}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              PDF (Print Ready)
-            </Button>
-            <Button 
-              onClick={exportAsZip}
-              variant="outline"
-              disabled={currentDeck.cards.length === 0}
-            >
-              <Archive className="w-4 h-4 mr-2" />
-              ZIP Archive
-            </Button>
-            <Button 
-              onClick={exportAsHTML}
-              variant="outline"
-              disabled={currentDeck.cards.length === 0}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              HTML Viewer
-            </Button>
-            <Button 
-              onClick={saveDeck}
-              variant="outline"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Locally
-            </Button>
-          </div>
-          
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className={`text-sm text-blue-800 ${settings.dyslexiaFont ? 'font-mono' : ''}`}>
-              💡 <strong>Tip:</strong> Your deck is automatically saved locally and will persist between sessions. 
-              Use the export options to create shareable files or print your cards. Click cards in the grid to flip and see both sides!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <ExportControls
+        currentDeck={currentDeck}
+        exportAsPDF={exportAsPDF}
+        exportAsZip={exportAsZip}
+        exportAsHTML={exportAsHTML}
+        saveDeck={saveDeck}
+        settings={settings}
+      />
     </div>
   );
 };
