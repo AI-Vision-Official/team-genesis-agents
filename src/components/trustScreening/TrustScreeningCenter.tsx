@@ -10,7 +10,9 @@ import { PublicRecordsChecker } from './PublicRecordsChecker';
 import { PhotoReverseLookup } from './PhotoReverseLookup';
 import { TrustProfileGenerator } from './TrustProfileGenerator';
 import { ScreeningReports } from './ScreeningReports';
-import { Shield, Search, Globe, Users, FileText, Camera, Brain, Download } from 'lucide-react';
+import { OSINTToolsGrid } from './OSINTToolsGrid';
+import { OSINTToolViewer } from './OSINTToolViewer';
+import { Shield, Search, Globe, Users, FileText, Camera, Brain, Download, Target } from 'lucide-react';
 import type { ScreeningReport } from '@/types/trustScreening';
 
 export const TrustScreeningCenter = () => {
@@ -62,8 +64,12 @@ export const TrustScreeningCenter = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="identity" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+      <Tabs defaultValue="osint-tools" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsTrigger value="osint-tools" className="flex items-center gap-1">
+            <Target className="w-4 h-4" />
+            <span className="hidden sm:inline">OSINT Tools</span>
+          </TabsTrigger>
           <TabsTrigger value="identity" className="flex items-center gap-1">
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline">Identity</span>
@@ -93,6 +99,10 @@ export const TrustScreeningCenter = () => {
             <span className="hidden sm:inline">Reports</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="osint-tools">
+          <OSINTToolsGrid />
+        </TabsContent>
 
         <TabsContent value="identity">
           <IdentityVerifier 
