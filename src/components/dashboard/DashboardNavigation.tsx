@@ -35,6 +35,7 @@ export const DashboardNavigation = ({ activeTab, setActiveTab }: DashboardNaviga
     { id: 'insights', label: 'AI Insights', icon: '🧠' },
     { id: 'security', label: 'Security Center', icon: '🔒' },
     { id: 'trust-screening', label: 'Trust & Identity Screening', icon: '🔒' },
+    { id: 'survival', label: 'Survival Hub', icon: '🚨' },
     { id: 'social', label: 'Social Media', icon: '📱' },
     { id: 'mission', label: 'Mission Control', icon: '🎯' },
     { id: 'humanitarian', label: 'Humanitarian', icon: '🌍' },

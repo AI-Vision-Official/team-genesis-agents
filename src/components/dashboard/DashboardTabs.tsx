@@ -16,6 +16,7 @@ import { AgentFrameworkCenter } from '../agents/AgentFrameworkCenter';
 import { SpecializedAgentsCenter } from '../agents/SpecializedAgentsCenter';
 import { SecurityCenter } from '../security/SecurityCenter';
 import { TrustScreeningCenter } from '../trustScreening/TrustScreeningCenter';
+import { SurvivalCenter } from '../survival/SurvivalCenter';
 import { EvaluationSystem } from '../evaluation/EvaluationSystem';
 import { AgentHealthDashboard } from '../monitoring/AgentHealthDashboard';
 import { SmartNotificationSystem } from '../notifications/SmartNotificationSystem';
@@ -158,6 +159,8 @@ export const DashboardTabs = ({ activeTab, mockAgents, mockTasks }: DashboardTab
         return <SecurityCenter />;
       case 'trust-screening':
         return <TrustScreeningCenter />;
+      case 'survival':
+        return <SurvivalCenter />;
       case 'social':
         return <SocialMediaCenter agents={mockSocialMediaAgents} />;
       case 'mission':
