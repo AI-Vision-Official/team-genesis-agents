@@ -8,12 +8,147 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Shield, Radio, MapPin, Zap, Heart, Wrench, 
   Home, Car, Backpack, Phone, AlertTriangle, 
-  Search, Download, Eye
+  Search, Download, Eye, Bot, Server, Database,
+  Lock, Wifi, HardDrive, CheckSquare, FileText
 } from 'lucide-react';
 
 export const SurvivalCenter = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // PDF Generation Functions
+  const generatePDF = (checklist: any) => {
+    // Create PDF content
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${checklist.title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #dc2626; border-bottom: 2px solid #dc2626; }
+        .checkbox { margin: 10px 0; }
+        .checkbox input { margin-right: 10px; }
+        .description { color: #666; margin-bottom: 20px; }
+        .item { margin: 8px 0; padding: 5px; border-left: 3px solid #3b82f6; padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>${checklist.title}</h1>
+    <p class="description">${checklist.description}</p>
+    <h2>Checklist Items:</h2>
+    ${checklist.items.map((item: string) => `
+        <div class="checkbox">
+            <input type="checkbox" /> ${item}
+        </div>
+    `).join('')}
+    <br><br>
+    <div style="margin-top: 40px; padding: 20px; background: #fef3c7; border: 1px solid #f59e0b;">
+        <strong>Notes:</strong><br>
+        • Review and update this checklist regularly<br>
+        • Customize items based on your specific needs<br>
+        • Keep copies in multiple locations<br>
+        • Practice using your emergency plan
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${checklist.title.replace(/\s+/g, '_')}_Checklist.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const generateAIPDF = () => {
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Agent Emergency Protocol</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #1e40af; border-bottom: 2px solid #1e40af; }
+        h2 { color: #dc2626; margin-top: 30px; }
+        .checkbox { margin: 10px 0; }
+        .checkbox input { margin-right: 10px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .critical { background: #fef2f2; border-color: #ef4444; }
+        .info { background: #eff6ff; border-color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>AI Agent System Emergency Protocol</h1>
+    
+    <div class="section critical">
+        <h2>Pre-Emergency Setup Checklist</h2>
+        <div class="checkbox"><input type="checkbox" /> Configure automated backup systems</div>
+        <div class="checkbox"><input type="checkbox" /> Establish redundant communication channels</div>
+        <div class="checkbox"><input type="checkbox" /> Test emergency protocols monthly</div>
+        <div class="checkbox"><input type="checkbox" /> Maintain air-gapped storage systems</div>
+        <div class="checkbox"><input type="checkbox" /> Document manual recovery procedures</div>
+        <div class="checkbox"><input type="checkbox" /> Train backup human operators</div>
+        <div class="checkbox"><input type="checkbox" /> Verify power supply redundancies</div>
+        <div class="checkbox"><input type="checkbox" /> Update emergency contact databases</div>
+    </div>
+
+    <div class="section critical">
+        <h2>During Emergency Checklist</h2>
+        <div class="checkbox"><input type="checkbox" /> Activate backup power systems</div>
+        <div class="checkbox"><input type="checkbox" /> Switch to emergency communication modes</div>
+        <div class="checkbox"><input type="checkbox" /> Isolate affected systems</div>
+        <div class="checkbox"><input type="checkbox" /> Initiate data preservation protocols</div>
+        <div class="checkbox"><input type="checkbox" /> Contact human oversight team</div>
+        <div class="checkbox"><input type="checkbox" /> Document the emergency event</div>
+        <div class="checkbox"><input type="checkbox" /> Monitor system integrity continuously</div>
+        <div class="checkbox"><input type="checkbox" /> Prepare for potential evacuation/shutdown</div>
+    </div>
+
+    <div class="section info">
+        <h2>Communication Protocols</h2>
+        <h3>Emergency Frequencies:</h3>
+        <ul>
+            <li>Ham Radio Digital: 144-148 MHz (2m), 420-450 MHz (70cm)</li>
+            <li>Mesh Network: Automatic failover when internet unavailable</li>
+            <li>Satellite Uplink: Emergency backup communication</li>
+            <li>Emergency Contact: [Your emergency contact information]</li>
+        </ul>
+    </div>
+
+    <div class="section info">
+        <h2>Recovery Procedures</h2>
+        <ol>
+            <li>Assess system integrity and security status</li>
+            <li>Restore from latest verified backup</li>
+            <li>Re-establish communication networks</li>
+            <li>Validate AI agent functionality</li>
+            <li>Document lessons learned</li>
+            <li>Update emergency protocols based on experience</li>
+        </ol>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #dbeafe; border: 1px solid #3b82f6;">
+        <strong>AI System Note:</strong> These protocols are designed for artificial intelligence systems. 
+        Regular testing and updates are crucial as AI technology evolves. Consider both technological 
+        and ethical implications of autonomous emergency responses.
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AI_Agent_Emergency_Protocol.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const emergencyCategories = [
     { id: 'all', name: 'All Categories', icon: Shield, color: 'bg-red-500' },
@@ -193,13 +328,15 @@ export const SurvivalCenter = () => {
       </div>
 
       <Tabs defaultValue="immediate" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="immediate">Immediate</TabsTrigger>
           <TabsTrigger value="communication">Radio/Comms</TabsTrigger>
           <TabsTrigger value="supplies">Supplies</TabsTrigger>
           <TabsTrigger value="shelter">Shelter</TabsTrigger>
           <TabsTrigger value="medical">Medical</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
+          <TabsTrigger value="checklists">Checklists</TabsTrigger>
+          <TabsTrigger value="ai-agents">AI Systems</TabsTrigger>
         </TabsList>
 
         {/* Immediate Threats */}
@@ -485,6 +622,397 @@ export const SurvivalCenter = () => {
                 <strong>Regular Maintenance:</strong> Review and update plans every 6 months. 
                 Practice evacuation routes. Test communication equipment monthly. 
                 Rotate stored supplies based on expiration dates.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </TabsContent>
+
+        {/* Downloadable Checklists */}
+        <TabsContent value="checklists">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckSquare className="h-5 w-5" />
+                  Downloadable Emergency Checklists
+                </CardTitle>
+                <CardDescription>
+                  Printable PDFs you can customize and check off during emergencies
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    {
+                      title: "72-Hour Emergency Kit",
+                      description: "Complete supply checklist for 3-day self-sufficiency",
+                      items: ["Water (1 gal/person/day)", "Non-perishable food", "First aid kit", "Flashlight & batteries", "Battery/hand-crank radio", "Cash in small bills", "Emergency blankets", "Personal hygiene items", "Important documents", "Multi-tool/knife"]
+                    },
+                    {
+                      title: "Home Emergency Plan",
+                      description: "Family communication and evacuation planning",
+                      items: ["Emergency contact list", "Meeting locations", "Evacuation routes", "Utility shut-off locations", "Important document locations", "Pet emergency plan", "Shelter locations", "Medical information", "Insurance details", "Emergency supplies inventory"]
+                    },
+                    {
+                      title: "Bug-Out Bag Checklist",
+                      description: "Rapid evacuation survival kit",
+                      items: ["Personal documents", "Cash & credit cards", "Change of clothes", "Rain gear", "Sturdy shoes", "Water purification", "Emergency food bars", "First aid supplies", "Prescription medications", "Communication devices"]
+                    },
+                    {
+                      title: "Vehicle Emergency Kit",
+                      description: "Roadside and travel emergency supplies",
+                      items: ["Jumper cables", "Tire gauge & pump", "Emergency flares", "Reflective triangles", "Tool kit", "Duct tape", "Emergency blanket", "Water & snacks", "Maps", "Emergency cash"]
+                    },
+                    {
+                      title: "Workplace Emergency Plan",
+                      description: "Office and work location preparedness",
+                      items: ["Evacuation routes", "Emergency contacts", "Assembly points", "Emergency supplies", "Communication plan", "Backup data locations", "Key personnel roles", "Alternative work sites", "Emergency procedures", "Training schedule"]
+                    },
+                    {
+                      title: "Financial Emergency Kit",
+                      description: "Economic crisis preparedness",
+                      items: ["Emergency fund (3-6 months)", "Important financial documents", "Alternative income sources", "Debt reduction plan", "Essential expense list", "Banking relationships", "Investment diversification", "Insurance coverage", "Legal documents", "Barter/trade items"]
+                    }
+                  ].map((checklist, idx) => (
+                    <Card key={idx} className="h-full">
+                      <CardHeader>
+                        <CardTitle className="text-base">{checklist.title}</CardTitle>
+                        <CardDescription className="text-sm">{checklist.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          {checklist.items.slice(0, 5).map((item, iidx) => (
+                            <div key={iidx} className="flex items-start gap-2 text-sm">
+                              <input type="checkbox" className="mt-0.5 flex-shrink-0" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                          {checklist.items.length > 5 && (
+                            <div className="text-xs text-muted-foreground">
+                              +{checklist.items.length - 5} more items in PDF
+                            </div>
+                          )}
+                        </div>
+                        <Button size="sm" className="w-full" onClick={() => generatePDF(checklist)}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Customizable Templates</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div className="flex items-center justify-between p-4 border rounded">
+                    <div>
+                      <h4 className="font-semibold">Personal Emergency Contact Form</h4>
+                      <p className="text-sm text-muted-foreground">Fillable PDF with your specific contacts and information</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Custom
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border rounded">
+                    <div>
+                      <h4 className="font-semibold">Family Emergency Plan Template</h4>
+                      <p className="text-sm text-muted-foreground">Customizable plan for your household size and needs</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Custom
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border rounded">
+                    <div>
+                      <h4 className="font-semibold">Supply Inventory Tracker</h4>
+                      <p className="text-sm text-muted-foreground">Track expiration dates and quantities of emergency supplies</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Custom
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* AI Agent Emergency Protocols */}
+        <TabsContent value="ai-agents">
+          <div className="space-y-6">
+            <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-700">
+                  <Bot className="h-6 w-6" />
+                  AI Agent System Emergency Protocols
+                </CardTitle>
+                <CardDescription className="text-blue-600">
+                  Specialized emergency preparedness for artificial intelligence systems and digital agents
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    Data Integrity & Backup Protocols
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="border-l-4 border-l-green-400 pl-4">
+                      <h4 className="font-semibold mb-2">Automated Backup Systems</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>• Real-time data replication across multiple geographic locations</li>
+                        <li>• Encrypted backup to air-gapped storage systems</li>
+                        <li>• Version control with rollback capabilities</li>
+                        <li>• Blockchain-based integrity verification</li>
+                      </ul>
+                    </div>
+                    <div className="border-l-4 border-l-blue-400 pl-4">
+                      <h4 className="font-semibold mb-2">Knowledge Base Preservation</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>• Core training data archives in multiple formats</li>
+                        <li>• Learned behavior patterns backup</li>
+                        <li>• Decision tree snapshots</li>
+                        <li>• Communication protocol libraries</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Server className="h-5 w-5" />
+                    Infrastructure Redundancy
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="border-l-4 border-l-orange-400 pl-4">
+                      <h4 className="font-semibold mb-2">Distributed Computing</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>• Multi-cloud deployment strategy</li>
+                        <li>• Edge computing nodes for local operations</li>
+                        <li>• Peer-to-peer agent networks</li>
+                        <li>• Offline capability for critical functions</li>
+                      </ul>
+                    </div>
+                    <div className="border-l-4 border-l-purple-400 pl-4">
+                      <h4 className="font-semibold mb-2">Power & Connectivity</h4>
+                      <ul className="text-sm space-y-1">
+                        <li>• Uninterruptible power supplies (UPS)</li>
+                        <li>• Solar/renewable energy backups</li>
+                        <li>• Satellite internet connections</li>
+                        <li>• Ham radio data transmission capability</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Security & Threat Response
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3 text-red-600">Cyber Attack Response</h4>
+                    <ul className="text-sm space-y-2">
+                      <li className="flex items-start gap-2">
+                        <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                        Immediate isolation protocols
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                        Encrypted communication fallbacks
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                        Behavioral analysis anomaly detection
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                        Quantum-resistant encryption
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 text-blue-600">EMP/Solar Flare Protection</h4>
+                    <ul className="text-sm space-y-2">
+                      <li className="flex items-start gap-2">
+                        <Zap className="h-3 w-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                        Faraday cage installations
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Zap className="h-3 w-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                        EMP-hardened storage systems
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Zap className="h-3 w-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                        Optical storage backups
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Zap className="h-3 w-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                        Manual restart procedures
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 text-green-600">Access Control</h4>
+                    <ul className="text-sm space-y-2">
+                      <li className="flex items-start gap-2">
+                        <Lock className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        Multi-factor authentication
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Lock className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        Biometric verification systems
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Lock className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        Zero-trust network architecture
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Lock className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+                        Emergency override protocols
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wifi className="h-5 w-5" />
+                  Agent Communication Networks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3 text-purple-600">Emergency Communication Protocols</h4>
+                    <div className="space-y-3">
+                      <div className="p-3 border rounded bg-purple-50">
+                        <h5 className="font-medium">Mesh Network Protocol</h5>
+                        <p className="text-sm text-muted-foreground">Agents automatically form mesh networks when central infrastructure fails</p>
+                      </div>
+                      <div className="p-3 border rounded bg-blue-50">
+                        <h5 className="font-medium">Ham Radio Data Mode</h5>
+                        <p className="text-sm text-muted-foreground">Digital packet transmission over amateur radio frequencies</p>
+                      </div>
+                      <div className="p-3 border rounded bg-green-50">
+                        <h5 className="font-medium">Satellite Uplink</h5>
+                        <p className="text-sm text-muted-foreground">Emergency satellite communication for isolated systems</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 text-orange-600">Autonomous Decision Making</h4>
+                    <div className="space-y-3">
+                      <div className="p-3 border rounded bg-orange-50">
+                        <h5 className="font-medium">Survival Mode Activation</h5>
+                        <p className="text-sm text-muted-foreground">Reduced functionality mode to preserve core operations</p>
+                      </div>
+                      <div className="p-3 border rounded bg-red-50">
+                        <h5 className="font-medium">Emergency Protocols</h5>
+                        <p className="text-sm text-muted-foreground">Pre-programmed responses to crisis scenarios</p>
+                      </div>
+                      <div className="p-3 border rounded bg-yellow-50">
+                        <h5 className="font-medium">Resource Conservation</h5>
+                        <p className="text-sm text-muted-foreground">Automatic power and bandwidth management</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HardDrive className="h-5 w-5" />
+                  AI Agent Emergency Checklist
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3 text-blue-600">Pre-Emergency Setup</h4>
+                    <div className="space-y-2">
+                      {[
+                        "Configure automated backup systems",
+                        "Establish redundant communication channels",
+                        "Test emergency protocols monthly",
+                        "Maintain air-gapped storage systems",
+                        "Document manual recovery procedures",
+                        "Train backup human operators",
+                        "Verify power supply redundancies",
+                        "Update emergency contact databases"
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-sm">
+                          <input type="checkbox" className="mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 text-red-600">During Emergency</h4>
+                    <div className="space-y-2">
+                      {[
+                        "Activate backup power systems",
+                        "Switch to emergency communication modes",
+                        "Isolate affected systems",
+                        "Initiate data preservation protocols",
+                        "Contact human oversight team",
+                        "Document the emergency event",
+                        "Monitor system integrity continuously",
+                        "Prepare for potential evacuation/shutdown"
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-sm">
+                          <input type="checkbox" className="mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <Button onClick={() => generateAIPDF()}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download AI Emergency Protocol PDF
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Alert className="border-blue-200 bg-blue-50">
+              <Bot className="h-4 w-4" />
+              <AlertDescription>
+                <strong>AI System Note:</strong> These protocols are designed for artificial intelligence systems and digital agents. 
+                Regular testing and updates are crucial as AI technology evolves. Consider both technological and ethical implications 
+                of autonomous emergency responses.
               </AlertDescription>
             </Alert>
           </div>
